@@ -1,0 +1,58 @@
+@import './fonts.css';
+@import './tailwind.css';
+@import './theme.css';
+
+/* Override generated Figma component for Intelligence Detail Page */
+.intelligence-detail-page-wrapper [data-name="首頁"] {
+  display: none !important;
+}
+
+.dark.intelligence-detail-page-wrapper .bg-\[\#ececf3\] {
+  background-color: #2e2e38 !important;
+}
+.dark.intelligence-detail-page-wrapper .bg-white {
+  background-color: #1a1a24 !important;
+}
+.dark.intelligence-detail-page-wrapper .text-\[\#1a1a24\] {
+  color: #ffffff !important;
+}
+.dark.intelligence-detail-page-wrapper .text-\[\#747480\] {
+  color: #a1a1aa !important;
+}
+.dark.intelligence-detail-page-wrapper .text-\[\#4a5565\] {
+  color: #9ca3af !important;
+}
+.dark.intelligence-detail-page-wrapper .border-\[\#e5e7eb\] {
+  border-color: #4a5565 !important;
+}
+.dark.intelligence-detail-page-wrapper .border-\[\#ececf3\] {
+  border-color: #4a5565 !important;
+}
+.dark.intelligence-detail-page-wrapper .bg-\[\#f6f6fa\] {
+  background-color: #2e2e38 !important;
+}
+.dark.intelligence-detail-page-wrapper .bg-\[\#fafbff\] {
+  background-color: #2e2e38 !important;
+}
+/* Ensure hover effect matches user requirement: "導航欄文字 hover 時變為黃色 #ffe600" - this applies generally but we add specific hover for this page tabs */
+.intelligence-detail-page-wrapper [data-name="Tab樣式"] > div > div > div:hover {
+  background-color: rgba(255, 230, 0, 0.1);
+  cursor: pointer;
+}
+.intelligence-detail-page-wrapper [data-name="Tab樣式"] p:hover {
+  color: #ffe600 !important;
+}
+.intelligence-detail-page-wrapper [data-name="Navigation"] > div > div {
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.intelligence-detail-page-wrapper [data-name="Navigation"] > div > div:hover {
+  background-color: rgba(255, 230, 0, 0.1);
+}
+.intelligence-detail-page-wrapper [data-name="Button"] {
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.intelligence-detail-page-wrapper [data-name="Button"]:hover {
+  opacity: 0.8;
+}

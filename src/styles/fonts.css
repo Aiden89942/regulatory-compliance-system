@@ -1,0 +1,16 @@
+/* 全域中文字體設定 */
+* {
+  font-family: 'EyInterstate', 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+}
+
+/* 大標題粗體設定 */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: bolder;
+}
+
+/* 強制所有 Bold 字體使用 Extra Bold (900) */
+[class*="font-['EYInterstate:Bold"],
+[class*="font-['Noto_Sans_JP:Bold"] {
+  font-weight: 900 !important;
+  font-variation-settings: 'wght' 900 !important;
+}

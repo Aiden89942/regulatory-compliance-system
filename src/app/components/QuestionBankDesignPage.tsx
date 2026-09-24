@@ -47,59 +47,58 @@ function GroupCheckbox({
   );
 }
 
-function PreviewField({ label, value, locked = false, lockedText = '填寫時才作答' }: { label: string; value?: string; locked?: boolean; lockedText?: string }) {
+function YesNoNA() {
   return (
-    <div className="flex flex-col gap-[8px] w-full">
-      <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[20px] text-[#2e2e38] text-[14px] tracking-[0.42px]">
-        {label}
+    <div className="flex gap-[16px] items-center pointer-events-none select-none" aria-hidden="true">
+      {['是', '否', 'N/A'].map((label) => (
+        <div key={label} className="flex gap-[6px] items-center">
+          <div className="size-[20px] rounded-full border border-[#c4c4cd] bg-white" />
+          <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[#2e2e38] text-[16px]">{label}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function QuestionPreview({
+  template,
+  category,
+  row,
+  no,
+}: {
+  template: QuestionTemplate;
+  category: QuestionBankCategory;
+  row: QuestionBankRow;
+  no: number;
+}) {
+  const reference = template === 'compliance' ? row.externalRule : (category.internalRule || row.externalRule);
+  const referenceLabel = template === 'compliance' ? '應遵循之法令規章' : '自查依據';
+  const procedureLabel = template === 'compliance' ? '遵循程序' : '控制描述';
+  const questionLabel = template === 'compliance' ? '自行評估程序' : '自行查核程序';
+
+  return (
+    <div className="flex flex-col gap-[10px] w-full">
+      <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] leading-[22px] text-[#747480]">
+        {referenceLabel}：{reference}
       </p>
-      <div className={`relative rounded-[8px] min-h-[48px] w-full ${locked ? 'bg-[#f6f6fa]' : 'bg-white'}`}>
-        <p className={`px-[12px] py-[12px] font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[23px] text-[16px] tracking-[0.48px] whitespace-pre-wrap ${locked ? 'text-[#99A1AF]' : 'text-[#2e2e38]'}`}>
-          {locked ? lockedText : value || '—'}
+      {template === 'internal-control' && (
+        <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] leading-[22px] text-[#747480]">
+          作業風險事件描述：{row.operationalRisk}（{RISK_LABEL[row.inherentRisk]}）
         </p>
-        <div aria-hidden="true" className="absolute border border-[#ececf3] border-solid inset-0 pointer-events-none rounded-[8px]" />
-      </div>
-    </div>
-  );
-}
-
-function CompliancePreview({ category, row }: { category: QuestionBankCategory; row: QuestionBankRow }) {
-  return (
-    <div className="flex flex-col gap-[16px] w-full">
-      <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24] text-[16px]" style={{ fontWeight: 700 }}>
-        {row.question}
+      )}
+      <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] leading-[23px] text-[#2e2e38] whitespace-pre-wrap">
+        {procedureLabel}：{row.controlMeasure}
       </p>
-      <PreviewField label="業務項目" value={category.process} />
-      <PreviewField label="應遵循之法令規章" value={row.externalRule} />
-      <PreviewField label="遵循程序" value={row.controlMeasure} />
-      <PreviewField label="自行評估程序" value={row.question} />
-      <PreviewField label="自行評估結果" locked />
-      <PreviewField label="佐證文件或說明" locked />
-    </div>
-  );
-}
-
-function InternalControlPreview({ category, row }: { category: QuestionBankCategory; row: QuestionBankRow }) {
-  return (
-    <div className="flex flex-col gap-[16px] w-full">
-      <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24] text-[16px]" style={{ fontWeight: 700 }}>
-        {row.question}
+      <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[16px] leading-[23px] text-[#1a1a24]" style={{ fontWeight: 700 }}>
+        {no}. {questionLabel}：{row.question}
       </p>
-      <div className="flex gap-[16px] w-full">
-        <div className="flex-1 min-w-0">
-          <PreviewField label="業務項目" value={category.process} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <PreviewField label="流程類別" value={category.riskCategory} />
-        </div>
+      <YesNoNA />
+      <div className="bg-[#f6f6fa] relative rounded-[8px] h-[72px] w-full">
+        <p className="p-[12px] font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] text-[#99A1AF]">
+          {template === 'compliance' ? '佐證文件或說明' : '佐證文件及說明'}
+        </p>
+        <div aria-hidden="true" className="absolute border border-[#ececf3] inset-0 pointer-events-none rounded-[8px]" />
       </div>
-      <PreviewField label="自查依據" value={category.internalRule || row.externalRule} />
-      <PreviewField label="自行查核程序" value={row.question} />
-      <PreviewField label="自行查核結果" locked />
-      <PreviewField label="作業風險事件描述" value={row.operationalRisk} />
-      <PreviewField label="控制描述" value={row.controlMeasure} />
-      <PreviewField label="固有風險等級" value={RISK_LABEL[row.inherentRisk]} />
-      <PreviewField label="佐證文件及說明" locked />
     </div>
   );
 }
@@ -122,14 +121,19 @@ export default function QuestionBankDesignPage() {
   const categories = useMemo(() => getQuestionBankByTemplate(template), [template]);
   const selectedIds = selected[template];
 
-  const selectedItems = useMemo(() => {
-    const items: { category: QuestionBankCategory; row: QuestionBankRow }[] = [];
+  const previewGroups = useMemo(() => {
+    const groups: { category: QuestionBankCategory; rows: { row: QuestionBankRow; no: number }[] }[] = [];
+    let no = 0;
     categories.forEach((category) => {
-      category.rows.forEach((row) => {
-        if (selectedIds.includes(row.id)) items.push({ category, row });
-      });
+      const rows = category.rows
+        .filter((row) => selectedIds.includes(row.id))
+        .map((row) => {
+          no += 1;
+          return { row, no };
+        });
+      if (rows.length > 0) groups.push({ category, rows });
     });
-    return items;
+    return groups;
   }, [categories, selectedIds]);
 
   const switchTemplate = (next: QuestionTemplate) => {
@@ -188,7 +192,7 @@ export default function QuestionBankDesignPage() {
                   設計自評表
                 </h1>
                 <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] ${isDarkMode ? 'text-[#99A1AF]' : 'text-[#747480]'}`}>
-                  從題庫勾選要放進這張表的題目。同一分類可以只拉其中一題。
+                  一張自評表只使用一種模板。同一分類可以只拉其中一題。
                 </p>
               </div>
               <div className="flex gap-[12px] shrink-0">
@@ -282,35 +286,42 @@ export default function QuestionBankDesignPage() {
                     {formTitle}
                   </p>
                   <p className="font-['EYInterstate:Regular',sans-serif] text-[14px] text-white shrink-0">
-                    已選 {selectedItems.length} 題
+                    已選 {selectedIds.length} 題
                   </p>
                 </div>
               </div>
               <div className="bg-white flex flex-col gap-[24px] items-start p-[24px] relative rounded-bl-[8px] rounded-br-[8px] w-full max-h-[calc(100vh-360px)] overflow-y-auto">
                 <div aria-hidden="true" className="absolute border-2 border-[#e5e7eb] border-solid inset-0 pointer-events-none rounded-bl-[8px] rounded-br-[8px]" />
-                {selectedItems.length === 0 ? (
+                {previewGroups.length === 0 ? (
                   <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] text-[#747480]">
                     請從左側題庫勾選題目
                   </p>
                 ) : (
-                  selectedItems.map(({ category, row }, index) => (
-                    <div key={row.id} className="flex flex-col gap-[16px] w-full">
-                      {index > 0 && <div className="h-px w-full bg-[#ececf3]" />}
+                  previewGroups.map((group) => (
+                    <div key={group.category.id} className="flex flex-col gap-[16px] w-full">
                       <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[20px] text-[#1a1a24]" style={{ fontWeight: 700 }}>
-                        {template === 'compliance' ? '法遵自評／法遵自查' : '內控自查／RCSA'}
+                        {group.category.process}
                       </p>
-                      {template === 'compliance' ? (
-                        <CompliancePreview category={category} row={row} />
-                      ) : (
-                        <InternalControlPreview category={category} row={row} />
-                      )}
+                      {group.rows.map(({ row, no }) => (
+                        <QuestionPreview
+                          key={row.id}
+                          template={template}
+                          category={group.category}
+                          row={row}
+                          no={no}
+                        />
+                      ))}
                     </div>
                   ))
                 )}
-                {selectedItems.length > 0 && (
-                  <div className="flex gap-[16px] w-full">
-                    <PreviewField label="填寫人簽章" locked lockedText="" />
-                    <PreviewField label="部門主管簽章" locked lockedText="" />
+                {previewGroups.length > 0 && (
+                  <div className="flex gap-[16px] w-full pt-[8px]">
+                    {['填寫人簽章', '部門主管簽章'].map((title) => (
+                      <div key={title} className="flex-1 bg-[#ececf3] rounded-[8px] p-[16px] flex flex-col items-center gap-[8px]">
+                        <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] text-[#4a5565]">{title}</p>
+                        <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] text-[#99a1af] h-[48px] flex items-center">[ 簽章區域 ]</p>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>

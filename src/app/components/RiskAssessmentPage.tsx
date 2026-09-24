@@ -6,7 +6,7 @@ import svgPaths from '../../imports/svg-vd3txnfj0u';
 import svgPaths2 from '../../imports/svg-azvftqyjok';
 
 interface RiskAssessmentPageProps {
-  onNavigate?: (page: string, project?: string) => void;
+  onNavigate?: (page: string, project?: string, query?: Record<string, string>) => void;
 }
 
 // ==================== Data ====================
@@ -428,7 +428,7 @@ function ExpiringCard({ year, onNavigate }: { year: number; onNavigate?: (page: 
 }
 
 // ==================== Summary Card (Middle & Right) ====================
-function SummaryCard({ type, year, onNavigate }: { type: 'outsourcing' | 'supplier'; year: number; onNavigate?: (page: string) => void }) {
+function SummaryCard({ type, year, onNavigate }: { type: 'outsourcing' | 'supplier'; year: number; onNavigate?: (page: string, project?: string, query?: Record<string, string>) => void }) {
   const isOutsourcing = type === 'outsourcing';
   const iconBg = isOutsourcing ? '#ddffdf' : '#ffedd4';
   const iconColor = isOutsourcing ? '#419D48' : '#EE762F';
@@ -478,10 +478,17 @@ function SummaryCard({ type, year, onNavigate }: { type: 'outsourcing' | 'suppli
           </div>
           {/* Black border button */}
           <button
-            disabled
-            className="bg-[#f6f6fa] min-w-[80px] relative rounded-[4px] shrink-0 cursor-not-allowed border border-[#c4c4cd] border-solid px-[12px] py-[8px] opacity-50"
+            type="button"
+            onClick={() => {
+              if (isOutsourcing) {
+                onNavigate?.('risk-assessment-form');
+              } else {
+                onNavigate?.('risk-assessment-send');
+              }
+            }}
+            className="bg-white min-w-[80px] relative rounded-[4px] shrink-0 cursor-pointer border border-[#1a1a24] border-solid px-[12px] py-[8px] hover:bg-[#f6f6fa] transition-colors"
           >
-            <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[23px] text-[#747480] text-[15px] text-center tracking-[0.45px] whitespace-nowrap" style={{ fontVariationSettings: "'wght' 400" }}>{buttonText}</p>
+            <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[23px] text-[#1a1a24] text-[15px] text-center tracking-[0.45px] whitespace-nowrap" style={{ fontVariationSettings: "'wght' 400" }}>{buttonText}</p>
           </button>
         </div>
         {/* Risk counts */}
@@ -588,7 +595,7 @@ function StatusBadge({ status, statusType }: { status: string; statusType: strin
 
 function ActionButtons({ item, onNavigate, approvedRecords, onApprove, activeTab }: { 
   item: AssessmentItem; 
-  onNavigate?: (page: string, project?: string) => void;
+  onNavigate?: (page: string, project?: string, query?: Record<string, string>) => void;
   approvedRecords: Set<string>;
   onApprove: (projectName: string) => void;
   activeTab: 'outsourcing' | 'supplier';

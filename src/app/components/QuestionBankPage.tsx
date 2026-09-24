@@ -3,8 +3,14 @@ import Header from './Header';
 import Footer from './Footer';
 import Breadcrumb from './Breadcrumb';
 import { useAppNavigate, useAppContext } from '../context/AppContext';
+import {
+  QuestionTemplate,
+  TEMPLATE_OPTIONS,
+  getQuestionBankByTemplate,
+  InherentRisk,
+} from '../data/questionBankData';
 
-function RiskBadge({ risk }: { risk: 'high' | 'medium' | 'low' | 'none' }) {
+function RiskBadge({ risk }: { risk: InherentRisk }) {
   const styles = {
     high: { bg: '#ffe2e2', text: '#ec5242', label: '高風險' },
     medium: { bg: '#ffedd4', text: '#EE762F', label: '中風險' },
@@ -21,54 +27,12 @@ function RiskBadge({ risk }: { risk: 'high' | 'medium' | 'low' | 'none' }) {
   );
 }
 
-const MOCK_DATA = [
-  {
-    riskCategory: '利害關係人/利益衝突',
-    process: '授信審查',
-    department: '授信管理部',
-    responsibleUnit: '凱基銀行 - 風管部',
-    internalRule: '個金業務授信辦法',
-    rows: [
-      {
-        externalRule: '金融控股公司及銀行業內部控制及稽核制度實施辦法第8條',
-        operationalRisk: '利害關係人交易相關業務規範及作業未盡周延。',
-        controlMeasure: '定期請同仁確認利害關係人系統名單資料庫之正確及完整性，並監管追蹤完成情形。',
-        question: '名單資料庫應定期更新。',
-        inherentRisk: 'medium' as const,
-        frequency: '每半年'
-      },
-      {
-        externalRule: '銀行法第33-1條',
-        operationalRisk: '授信人員對於銀行法第33-1條中規定利害關係者經手之授信案件，未予迴避，恐有利害衝突之風險。',
-        controlMeasure: '1.授信人員對於利害關係人之授信案件應予以迴避，改由職務代理人代為執行職務。\n2.對營業單位主管應迴避核定授權案件，由其職務代理人核轉總行核定。',
-        question: '各級授信人員就其所辦理有利害關係之授信案件時應予迴避，改由職務代理人代為執行職務。',
-        inherentRisk: 'medium' as const,
-        frequency: '每半年'
-      }
-    ]
-  },
-  {
-    riskCategory: '客戶身分識別',
-    process: '存款開戶',
-    department: '營業部',
-    responsibleUnit: '凱基金控 - 資訊部',
-    internalRule: '存款業務作業手冊',
-    rows: [
-      {
-        externalRule: '洗錢防制法第7條',
-        operationalRisk: '未落實客戶身分識別程序，導致不法分子利用人頭帳戶。',
-        controlMeasure: '開戶時應確實核對雙證件，並透過聯徵中心查詢異常紀錄。',
-        question: '開戶作業是否落實證件核對？',
-        inherentRisk: 'high' as const,
-        frequency: '每季'
-      }
-    ]
-  }
-];
-
 export default function QuestionBankPage() {
   const { isDarkMode } = useAppContext();
   const onNavigate = useAppNavigate();
+  const [template, setTemplate] = useState<QuestionTemplate>(() => {
+    return (localStorage.getItem('questionBankTemplate') as QuestionTemplate) || 'compliance';
+  });
   const [searchQuery, setSearchQuery] = useState(() => {
     return localStorage.getItem('questionBankSearchQuery') || '';
   });
@@ -77,27 +41,35 @@ export default function QuestionBankPage() {
     localStorage.setItem('questionBankSearchQuery', searchQuery);
   }, [searchQuery]);
 
-  const filteredData = MOCK_DATA.filter(item => 
-    item.process.includes(searchQuery) || 
+  useEffect(() => {
+    localStorage.setItem('questionBankTemplate', template);
+  }, [template]);
+
+  const mockData = getQuestionBankByTemplate(template);
+
+  const filteredData = mockData.filter(item =>
+    item.process.includes(searchQuery) ||
     item.department.includes(searchQuery) ||
     item.responsibleUnit.includes(searchQuery) ||
     item.riskCategory.includes(searchQuery)
   );
 
+  const handleEdit = (rowId: string) => {
+    onNavigate('question-bank-edit', undefined, { template, id: rowId });
+  };
+
   return (
     <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'bg-[#1a1a24]' : 'bg-[#2e2e38]'}`}>
       <Header onNavigate={onNavigate} currentPage="question-bank" />
-      
+
       <div className={`${isDarkMode ? 'bg-[#1a1a24]' : 'bg-[#ececf3]'} content-stretch flex flex-col gap-[32px] items-center px-0 py-[32px] pt-[152px] relative rounded-tl-[32px] rounded-tr-[32px] shrink-0 w-full min-h-[calc(100vh-152px)]`}>
-        
-        {/* Max-width wrapper for 1920px centered layout */}
+
         <div className="w-full max-w-[1920px] flex flex-col gap-[32px] items-center">
-          
-          {/* Breadcrumb Section */}
+
           <div className="relative shrink-0 w-full px-[32px]">
             <div className="max-w-[1440px] mx-auto w-full">
-              <Breadcrumb 
-                isDarkMode={isDarkMode} 
+              <Breadcrumb
+                isDarkMode={isDarkMode}
                 onNavigate={onNavigate}
                 items={[
                   { text: '首頁', onClick: () => onNavigate('home') },
@@ -107,22 +79,64 @@ export default function QuestionBankPage() {
             </div>
           </div>
 
-          {/* Title Section */}
           <div className="relative shrink-0 w-full px-[32px]">
             <div className="max-w-[1440px] mx-auto w-full flex items-center justify-between gap-[16px]">
               <h1 className={`font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] leading-[normal] text-[32px] tracking-[0.96px] ${isDarkMode ? 'text-white' : 'text-black'}`} style={{ fontWeight: 700 }}>
                 題庫維護
               </h1>
+              <div className="flex items-center gap-[16px]">
+                <button
+                  type="button"
+                  onClick={() => onNavigate('question-bank-edit', undefined, { template, mode: 'new' })}
+                  className="bg-[#ffe600] border-none rounded-[8px] px-[20px] py-[12px] cursor-pointer hover:bg-[#ffd000] transition-colors"
+                >
+                  <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24] text-[16px]" style={{ fontWeight: 700 }}>新增題目</p>
+                </button>
               <div className={`${isDarkMode ? 'bg-[#2e2e38] border-[#474756]' : 'bg-white border-[#ececf3]'} rounded-[8px] border px-[16px] py-[10px] shadow-sm flex flex-col gap-[4px] shrink-0 transition-colors`}>
                 <p className={`font-['EYInterstate:Regular',sans-serif] text-[12px] leading-none ${isDarkMode ? 'text-[#99A1AF]' : 'text-[#747480]'}`}>所屬單位</p>
                 <p className={`font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[16px] leading-none ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`} style={{ fontWeight: 700 }}>凱基銀行 - 風管部</p>
               </div>
+              </div>
             </div>
           </div>
 
-          {/* Content Section */}
           <div className="flex flex-col items-start pb-[32px] pt-0 px-[32px] relative shrink-0 w-full max-w-[1504px]">
-            
+
+            {/* 模板選擇 */}
+            <div className={`${isDarkMode ? 'bg-[#2e2e38]' : 'bg-white'} rounded-[12px] p-[24px] shadow-sm mb-[16px] w-full transition-colors`}>
+              <p className={`font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[16px] mb-[12px] ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`} style={{ fontWeight: 700 }}>
+                選擇題庫模板
+              </p>
+              <div className="flex gap-[12px] flex-wrap">
+                {TEMPLATE_OPTIONS.map((option) => {
+                  const isActive = template === option.value;
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setTemplate(option.value)}
+                      className={`px-[20px] py-[10px] rounded-[8px] border-none cursor-pointer transition-colors ${
+                        isActive
+                          ? 'bg-[#ffe600]'
+                          : isDarkMode
+                            ? 'bg-[#1a1a24] hover:bg-[#353545]'
+                            : 'bg-[#f6f6fa] hover:bg-[#ececf3]'
+                      }`}
+                    >
+                      <p
+                        className={`font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[15px] ${
+                          isActive ? 'text-[#1a1a24]' : isDarkMode ? 'text-[#f6f6fa]' : 'text-[#747480]'
+                        }`}
+                        style={{ fontWeight: 700 }}
+                      >
+                        {option.label}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* 搜尋區塊 */}
             <div className={`${isDarkMode ? 'bg-[#2e2e38]' : 'bg-white'} rounded-[12px] p-[32px] shadow-sm mb-[24px] w-full transition-colors`}>
               <h2 className={`font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[18px] mb-[16px] ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`} style={{ fontWeight: 700 }}>輸入業務流程或部門名稱進行查詢</h2>
@@ -152,7 +166,6 @@ export default function QuestionBankPage() {
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse table-fixed">
                   <thead>
-                    {/* 第一層表頭 */}
                     <tr className={`${isDarkMode ? 'bg-[#1a1a24]' : 'bg-[#f6f6fa]'} transition-colors`}>
                       <th rowSpan={2} className={`border-b border-r ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px] text-left w-[110px]`}>
                         <p className={`font-['EYInterstate:Bold',sans-serif] text-[14px] uppercase tracking-wider ${isDarkMode ? 'text-[#99A1AF]' : 'text-[#747480]'}`} style={{ fontWeight: 700 }}>法遵風險</p>
@@ -178,11 +191,13 @@ export default function QuestionBankPage() {
                       <th rowSpan={2} className={`border-b border-r ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px] text-left w-[160px]`}>
                         <p className={`font-['EYInterstate:Bold',sans-serif] text-[14px] uppercase tracking-wider ${isDarkMode ? 'text-[#99A1AF]' : 'text-[#747480]'}`} style={{ fontWeight: 700 }}>控制措施</p>
                       </th>
-                      <th colSpan={3} className={`border-b ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px] text-center`}>
+                      <th colSpan={3} className={`border-b border-r ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px] text-center`}>
                         <p className={`font-['EYInterstate:Bold',sans-serif] text-[14px] uppercase tracking-wider ${isDarkMode ? 'text-[#99A1AF]' : 'text-[#747480]'}`} style={{ fontWeight: 700 }}>評估/查核</p>
                       </th>
+                      <th rowSpan={2} className={`border-b ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px] text-center w-[90px]`}>
+                        <p className={`font-['EYInterstate:Bold',sans-serif] text-[14px] uppercase tracking-wider ${isDarkMode ? 'text-[#99A1AF]' : 'text-[#747480]'}`} style={{ fontWeight: 700 }}>操作</p>
+                      </th>
                     </tr>
-                    {/* 第二層表頭 */}
                     <tr className={`${isDarkMode ? 'bg-[#1a1a24]' : 'bg-[#f6f6fa]'} transition-colors`}>
                       <th className={`border-b border-r ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[12px] text-left w-[280px]`}>
                         <p className={`font-['EYInterstate:Bold',sans-serif] text-[13px] ${isDarkMode ? 'text-[#99A1AF]' : 'text-[#747480]'}`} style={{ fontWeight: 700 }}>題目</p>
@@ -190,16 +205,16 @@ export default function QuestionBankPage() {
                       <th className={`border-b border-r ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[12px] text-center w-[120px]`}>
                         <p className={`font-['EYInterstate:Bold',sans-serif] text-[13px] ${isDarkMode ? 'text-[#99A1AF]' : 'text-[#747480]'}`} style={{ fontWeight: 700 }}>固有風險等級</p>
                       </th>
-                      <th className={`border-b ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[12px] text-center w-[100px]`}>
+                      <th className={`border-b border-r ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[12px] text-center w-[100px]`}>
                         <p className={`font-['EYInterstate:Bold',sans-serif] text-[13px] ${isDarkMode ? 'text-[#99A1AF]' : 'text-[#747480]'}`} style={{ fontWeight: 700 }}>自評頻率</p>
                       </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredData.length > 0 ? filteredData.map((category, catIdx) => (
-                      <React.Fragment key={catIdx}>
+                    {filteredData.length > 0 ? filteredData.map((category) => (
+                      <React.Fragment key={category.id}>
                         {category.rows.map((row, rowIdx) => (
-                          <tr key={`${catIdx}-${rowIdx}`} className={`${isDarkMode ? 'hover:bg-[#353545]' : 'hover:bg-[#fafafd]'} transition-colors`}>
+                          <tr key={row.id} className={`${isDarkMode ? 'hover:bg-[#353545]' : 'hover:bg-[#fafafd]'} transition-colors`}>
                             {rowIdx === 0 && (
                               <>
                                 <td rowSpan={category.rows.length} className={`border-b border-r ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px] align-top`}>
@@ -234,15 +249,26 @@ export default function QuestionBankPage() {
                             <td className={`border-b border-r ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px] align-top text-center`}>
                               <RiskBadge risk={row.inherentRisk} />
                             </td>
-                            <td className={`border-b ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px] align-top text-center`}>
+                            <td className={`border-b border-r ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px] align-top text-center`}>
                               <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] leading-[22px] ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`}>{row.frequency}</p>
+                            </td>
+                            <td className={`border-b ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px] align-top text-center`}>
+                              <button
+                                type="button"
+                                onClick={() => handleEdit(row.id)}
+                                className="bg-transparent border-none cursor-pointer py-[4px] hover:opacity-80 transition-opacity"
+                              >
+                                <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[15px] underline ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`}>
+                                  編輯
+                                </p>
+                              </button>
                             </td>
                           </tr>
                         ))}
                       </React.Fragment>
                     )) : (
                       <tr>
-                        <td colSpan={11} className="p-[48px] text-center">
+                        <td colSpan={12} className="p-[48px] text-center">
                           <p className={`font-['EYInterstate:Regular',sans-serif] text-[16px] ${isDarkMode ? 'text-[#747480]' : 'text-[#99A1AF]'}`}>查無相關題庫資料</p>
                         </td>
                       </tr>

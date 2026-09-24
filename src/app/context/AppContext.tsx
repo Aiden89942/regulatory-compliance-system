@@ -17,7 +17,7 @@ export interface RecentSearchEntry {
  * Maps old page names (used in onNavigate) to URL paths.
  * supplier param is encoded in the URL for relevant pages.
  */
-export function pageToPath(page: string, supplier?: string): string {
+export function pageToPath(page: string, supplier?: string, query?: Record<string, string>): string {
   const map: Record<string, string> = {
     'home': '/',
     'supplier-risk-assessment': '/supplier-risk-assessment',
@@ -36,14 +36,29 @@ export function pageToPath(page: string, supplier?: string): string {
     'risk-assessment-form': '/risk-assessment-form',
     'risk-assessment-view': '/risk-assessment-view',
     'question-bank': '/question-bank',
+    'question-bank-edit': '/question-bank-edit',
+    'self-assessment': '/self-assessment',
     'management-report': '/management-report',
   };
 
   let path = map[page] || '/';
 
+  const params = new URLSearchParams();
+
   // Append supplier as query param for pages that need it
   if (supplier && ['quick-intelligence-detail'].includes(page)) {
-    path += `?supplier=${encodeURIComponent(supplier)}`;
+    params.set('supplier', supplier);
+  }
+
+  if (query) {
+    Object.entries(query).forEach(([key, value]) => {
+      if (value) params.set(key, value);
+    });
+  }
+
+  const qs = params.toString();
+  if (qs) {
+    path += `?${qs}`;
   }
 
   return path;
@@ -71,6 +86,8 @@ export function pathToPage(pathname: string): string {
     '/risk-assessment-form': 'risk-assessment-form',
     '/risk-assessment-view': 'risk-assessment-view',
     '/question-bank': 'question-bank',
+    '/question-bank-edit': 'question-bank-edit',
+    '/self-assessment': 'self-assessment',
     '/management-report': 'management-report',
   };
   return map[pathname] || 'home';
@@ -150,8 +167,8 @@ export function useAppContext() {
 export function useAppNavigate() {
   const navigate = useNavigate();
 
-  const appNavigate = (page: string, supplier?: string) => {
-    const path = pageToPath(page, supplier);
+  const appNavigate = (page: string, supplier?: string, query?: Record<string, string>) => {
+    const path = pageToPath(page, supplier, query);
     navigate(path);
   };
 

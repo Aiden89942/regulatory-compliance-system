@@ -1,9 +1,10 @@
 import svgPaths from "@/imports/svg-mw3h2lnbfe";
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { pathToPage, pageToPath } from '../context/AppContext';
 
 interface HeaderProps {
-  onNavigate?: (page: string) => void;
+  onNavigate?: (page: string, supplier?: string, query?: Record<string, string>) => void;
   currentPage?: string;
   isFixed?: boolean;
 }
@@ -166,17 +167,136 @@ function Bell() {
 
 /**
  * NotificationBell (通知鈴鐺)
- * 顯示未讀通知數量 (99+)
+ * 點擊後展開通知面板
  */
-function NotificationBell() {
+function NotificationBell({ onNavigate }: { onNavigate?: (page: string, supplier?: string, query?: Record<string, string>) => void }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
+  const notifications = [
+    {
+      id: 'n1',
+      title: '自評表審核通知',
+      message: '授信審查自評表已設計完成，請主管審核後再發布。',
+      time: '今天 09:30',
+      unread: true,
+      action: () => onNavigate?.('question-bank-edit', undefined, { template: 'compliance', id: 'comp-1-1' }),
+    },
+    {
+      id: 'n2',
+      title: '自評通知',
+      message: '法令遵循定期評估自評表已發布，請於截止日前完成填寫。',
+      time: '今天 10:15',
+      unread: true,
+      action: () => onNavigate?.('self-assessment', undefined, { template: 'compliance' }),
+    },
+    {
+      id: 'n3',
+      title: '自評逾期通知',
+      message: '存款開戶自評已逾截止日，請儘速補填。',
+      time: '昨天 16:20',
+      unread: true,
+      action: () => onNavigate?.('self-assessment', undefined, { template: 'compliance' }),
+    },
+    {
+      id: 'n4',
+      title: '自評 Review 通知',
+      message: '授信管理部已送出自評結果，請主管進行 review。',
+      time: '昨天 11:05',
+      unread: true,
+      action: () => onNavigate?.('risk-assessment'),
+    },
+    {
+      id: 'n5',
+      title: '改善通知',
+      message: '主管 review 後請補充利害關係人迴避作業的改善說明。',
+      time: '03/18 14:42',
+      unread: true,
+      action: () => onNavigate?.('self-assessment', undefined, { template: 'compliance' }),
+    },
+  ];
+
+  const unreadCount = notifications.filter((n) => n.unread).length;
+
   return (
-    <div className="content-stretch flex gap-[19px] items-center relative rounded-[24px] shrink-0">
-      <div className="h-[64px] relative rounded-[8px] shrink-0 w-[59.267px] cursor-pointer hover:opacity-80 transition-opacity">
-        <Bell />
+    <div className="relative" ref={panelRef}>
+      <div
+        className="content-stretch flex gap-[19px] items-center relative rounded-[24px] shrink-0"
+        onClick={() => setIsOpen((prev) => !prev)}
+      >
+        <div className="h-[64px] relative rounded-[8px] shrink-0 w-[59.267px] cursor-pointer hover:opacity-80 transition-opacity">
+          <Bell />
+        </div>
+        {unreadCount > 0 && (
+          <div className="absolute bg-[#ee762f] content-stretch flex items-center justify-center px-[6px] py-[3px] right-0 rounded-[18.116px] top-0 pointer-events-none">
+            <p className="font-['EYInterstate:Regular',sans-serif] leading-[20px] not-italic relative shrink-0 text-[14px] text-nowrap text-white tracking-[0.42px]">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </p>
+          </div>
+        )}
       </div>
-      <div className="absolute bg-[#ee762f] content-stretch flex items-center justify-center px-[6px] py-[3px] right-0 rounded-[18.116px] top-0">
-        <p className="font-['EYInterstate:Regular',sans-serif] leading-[20px] not-italic relative shrink-0 text-[14px] text-nowrap text-white tracking-[0.42px]">99+</p>
-      </div>
+
+      {isOpen && (
+        <div className="absolute right-0 top-[72px] w-[400px] bg-white rounded-[12px] shadow-[0_8px_32px_rgba(0,0,0,0.18)] z-[60] overflow-hidden border border-[#ececf3]">
+          <div className="flex items-center justify-between px-[20px] py-[16px] border-b border-[#ececf3] bg-[#f6f6fa]">
+            <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[18px] text-[#1a1a24]" style={{ fontWeight: 700 }}>
+              通知
+            </p>
+            <p className="font-['EYInterstate:Regular',sans-serif] text-[13px] text-[#747480]">
+              {unreadCount} 則未讀
+            </p>
+          </div>
+          <div className="max-h-[420px] overflow-y-auto">
+            {notifications.map((item, index) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => {
+                  setIsOpen(false);
+                  item.action();
+                }}
+                className={`w-full text-left px-[20px] py-[16px] border-none cursor-pointer transition-colors hover:bg-[#fafafd] ${
+                  index < notifications.length - 1 ? 'border-b border-[#ececf3]' : ''
+                } ${item.unread ? 'bg-[#fffdf0]' : 'bg-white'}`}
+              >
+                <div className="flex items-start gap-[12px]">
+                  <div className={`mt-[6px] size-[8px] rounded-full shrink-0 ${item.unread ? 'bg-[#ee762f]' : 'bg-transparent'}`} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-[8px] mb-[4px]">
+                      <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[15px] text-[#1a1a24] truncate" style={{ fontWeight: 700 }}>
+                        {item.title}
+                      </p>
+                      <p className="font-['EYInterstate:Regular',sans-serif] text-[12px] text-[#99A1AF] shrink-0">
+                        {item.time}
+                      </p>
+                    </div>
+                    <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] leading-[20px] text-[#747480]">
+                      {item.message}
+                    </p>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+          <div className="px-[20px] py-[12px] border-t border-[#ececf3] bg-[#f6f6fa]">
+            <p className="font-['EYInterstate:Regular',sans-serif] text-[13px] text-center text-[#747480]">
+              以上為示範通知訊息
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -193,8 +313,8 @@ export default function Header({ onNavigate: onNavigateProp, currentPage: curren
   const routerNav = useNavigate();
   const location = useLocation();
 
-  const routerNavigate = (page: string) => {
-    const path = pageToPath(page);
+  const routerNavigate = (page: string, supplier?: string, query?: Record<string, string>) => {
+    const path = pageToPath(page, supplier, query);
     routerNav(path);
   };
 
@@ -260,7 +380,7 @@ export default function Header({ onNavigate: onNavigateProp, currentPage: curren
               <div className="content-stretch flex gap-[16px] items-center relative shrink-0">
                 <div className="flex flex-row items-center self-stretch">
                 </div>
-                <NotificationBell />
+                <NotificationBell onNavigate={onNavigate} />
               </div>
             </div>
           </div>

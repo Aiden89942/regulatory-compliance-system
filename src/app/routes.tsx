@@ -1,6 +1,6 @@
 import { createHashRouter, Outlet, useSearchParams, ScrollRestoration } from 'react-router';
 import { TrackingProvider } from './context/TrackingContext';
-import { AppProvider, useAppContext, useAppNavigate, useCurrentPage } from './context/AppContext';
+import { AppProvider, useAppContext, useAppNavigate, useCurrentPage, pageToPath } from './context/AppContext';
 import TrackingNotification from './components/TrackingNotification';
 import DraftSavedNotification from './components/DraftSavedNotification';
 
@@ -23,6 +23,8 @@ import RiskAssessmentViewPage from './components/RiskAssessmentViewPage';
 import SupplierDataVerificationPage from './components/SupplierDataVerificationPage';
 import SupplierRiskAssessmentResultPage from './components/SupplierRiskAssessmentResultPage';
 import QuestionBankPage from './components/QuestionBankPage';
+import QuestionBankEditPage from './components/QuestionBankEditPage';
+import SelfAssessmentPage from './components/SelfAssessmentPage';
 import ManagementReportPage from './components/ManagementReportPage';
 import { useNavigate } from 'react-router';
 import { addSearchHistory, searchCompanies } from './components/companyLookup';
@@ -214,18 +216,28 @@ function RiskAssessmentFormPageWrapper() {
 function RiskAssessmentPageWrapper() {
   const navigate = useNavigate();
   const baseNavigate = useAppNavigate();
-  
-  const onNavigate = (page: string, project?: string) => {
-    if (project) {
-      // 如果有項目名稱，添加為查詢參數
-      const path = `/risk-assessment-${page.includes('view') ? 'view' : 'form'}`;
-      navigate(`${path}?project=${encodeURIComponent(project)}`);
+
+  const onNavigate = (page: string, project?: string, query?: Record<string, string>) => {
+    if (project || query) {
+      const basePath = pageToPath(page).split('?')[0];
+      const params = new URLSearchParams(query || {});
+      if (project) params.set('project', project);
+      const qs = params.toString();
+      navigate(qs ? `${basePath}?${qs}` : basePath);
     } else {
       baseNavigate(page);
     }
   };
-  
+
   return <RiskAssessmentPage onNavigate={onNavigate} />;
+}
+
+function QuestionBankEditPageWrapper() {
+  return <QuestionBankEditPage />;
+}
+
+function SelfAssessmentPageWrapper() {
+  return <SelfAssessmentPage />;
 }
 
 function RiskAssessmentSendPageWrapper() {
@@ -298,6 +310,8 @@ export const router = createHashRouter([
       { path: 'supplier-data-verification', Component: SupplierDataVerificationPageWrapper },
       { path: 'supplier-risk-assessment-result', Component: SupplierRiskAssessmentResultPageWrapper },
       { path: 'question-bank', Component: QuestionBankPageWrapper },
+      { path: 'question-bank-edit', Component: QuestionBankEditPageWrapper },
+      { path: 'self-assessment', Component: SelfAssessmentPageWrapper },
       { path: 'management-report', Component: ManagementReportPageWrapper },
       { path: '*', Component: NotFound },
     ],

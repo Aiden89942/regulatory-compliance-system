@@ -87,6 +87,13 @@ export default function QuestionBankPage() {
               <div className="flex items-center gap-[16px]">
                 <button
                   type="button"
+                  onClick={() => onNavigate('question-bank-design', undefined, { template })}
+                  className="bg-[#ffe600] border-none rounded-[8px] px-[20px] py-[12px] cursor-pointer hover:bg-[#ffd000] transition-colors"
+                >
+                  <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24] text-[16px]" style={{ fontWeight: 700 }}>設計自評表</p>
+                </button>
+                <button
+                  type="button"
                   onClick={() => onNavigate('question-bank-edit', undefined, { template, mode: 'new' })}
                   className="bg-[#ffe600] border-none rounded-[8px] px-[20px] py-[12px] cursor-pointer hover:bg-[#ffd000] transition-colors"
                 >

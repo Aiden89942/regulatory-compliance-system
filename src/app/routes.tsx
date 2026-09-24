@@ -24,6 +24,7 @@ import SupplierDataVerificationPage from './components/SupplierDataVerificationP
 import SupplierRiskAssessmentResultPage from './components/SupplierRiskAssessmentResultPage';
 import QuestionBankPage from './components/QuestionBankPage';
 import QuestionBankEditPage from './components/QuestionBankEditPage';
+import QuestionBankDesignPage from './components/QuestionBankDesignPage';
 import SelfAssessmentPage from './components/SelfAssessmentPage';
 import ManagementReportPage from './components/ManagementReportPage';
 import { useNavigate } from 'react-router';
@@ -236,6 +237,11 @@ function QuestionBankEditPageWrapper() {
   return <QuestionBankEditPage />;
 }
 
+function QuestionBankDesignPageWrapper() {
+  return <QuestionBankDesignPage />;
+}
+
+
 function SelfAssessmentPageWrapper() {
   return <SelfAssessmentPage />;
 }
@@ -311,6 +317,7 @@ export const router = createHashRouter([
       { path: 'supplier-risk-assessment-result', Component: SupplierRiskAssessmentResultPageWrapper },
       { path: 'question-bank', Component: QuestionBankPageWrapper },
       { path: 'question-bank-edit', Component: QuestionBankEditPageWrapper },
+      { path: 'question-bank-design', Component: QuestionBankDesignPageWrapper },
       { path: 'self-assessment', Component: SelfAssessmentPageWrapper },
       { path: 'management-report', Component: ManagementReportPageWrapper },
       { path: '*', Component: NotFound },

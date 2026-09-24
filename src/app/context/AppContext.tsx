@@ -37,6 +37,7 @@ export function pageToPath(page: string, supplier?: string, query?: Record<strin
     'risk-assessment-view': '/risk-assessment-view',
     'question-bank': '/question-bank',
     'question-bank-edit': '/question-bank-edit',
+    'question-bank-design': '/question-bank-design',
     'self-assessment': '/self-assessment',
     'management-report': '/management-report',
   };
@@ -87,6 +88,7 @@ export function pathToPage(pathname: string): string {
     '/risk-assessment-view': 'risk-assessment-view',
     '/question-bank': 'question-bank',
     '/question-bank-edit': 'question-bank-edit',
+    '/question-bank-design': 'question-bank-design',
     '/self-assessment': 'self-assessment',
     '/management-report': 'management-report',
   };

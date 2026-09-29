@@ -87,13 +87,6 @@ export default function QuestionBankPage() {
               <div className="flex items-center gap-[16px]">
                 <button
                   type="button"
-                  onClick={() => onNavigate('question-bank-review')}
-                  className="bg-[#ffe600] border-none rounded-[8px] px-[20px] py-[12px] cursor-pointer hover:bg-[#ffd000] transition-colors"
-                >
-                  <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24] text-[16px]" style={{ fontWeight: 700 }}>問卷審核</p>
-                </button>
-                <button
-                  type="button"
                   onClick={() => onNavigate('question-bank-design', undefined, { template })}
                   className="bg-[#ffe600] border-none rounded-[8px] px-[20px] py-[12px] cursor-pointer hover:bg-[#ffd000] transition-colors"
                 >
@@ -106,10 +99,6 @@ export default function QuestionBankPage() {
                 >
                   <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24] text-[16px]" style={{ fontWeight: 700 }}>新增題目</p>
                 </button>
-              <div className={`${isDarkMode ? 'bg-[#2e2e38] border-[#474756]' : 'bg-white border-[#ececf3]'} rounded-[8px] border px-[16px] py-[10px] shadow-sm flex flex-col gap-[4px] shrink-0 transition-colors`}>
-                <p className={`font-['EYInterstate:Regular',sans-serif] text-[12px] leading-none ${isDarkMode ? 'text-[#99A1AF]' : 'text-[#747480]'}`}>所屬單位</p>
-                <p className={`font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[16px] leading-none ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`} style={{ fontWeight: 700 }}>凱基銀行 - 風管部</p>
-              </div>
               </div>
             </div>
           </div>

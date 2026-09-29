@@ -213,7 +213,7 @@ export default function QuestionBankReviewPage() {
 
   return (
     <div className="bg-[#2e2e38] flex flex-col items-start w-full min-h-screen">
-      <Header onNavigate={onNavigate} currentPage="question-bank" />
+      <Header onNavigate={onNavigate} currentPage="question-bank-review" />
       <div className="pt-[120px] w-full">
         <div className="bg-[#ececf3] flex flex-col items-center py-[32px] rounded-tl-[32px] rounded-tr-[32px] w-full min-h-[calc(100vh-120px)]">
           <div className="flex flex-col gap-[32px] items-center px-[32px] w-[1440px]">

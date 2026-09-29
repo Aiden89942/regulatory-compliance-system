@@ -99,7 +99,31 @@ export function pathToPage(pathname: string): string {
   return map[pathname] || 'home';
 }
 
+export type UserRole = 'assessor' | 'maintainer' | 'reviewer';
+
+export interface AppUser {
+  id: string;
+  role: UserRole;
+  name: string;
+  roleLabel: string;
+  unit: string;
+}
+
+export const APP_USERS: AppUser[] = [
+  { id: 'assessor', role: 'assessor', name: '陳宜安', roleLabel: '自評人員', unit: '授信管理部' },
+  { id: 'maintainer', role: 'maintainer', name: '林志明', roleLabel: '問卷維護', unit: '凱基銀行 - 風管部' },
+  { id: 'reviewer', role: 'reviewer', name: '黃淑芬', roleLabel: '審核與發送', unit: '凱基金控 - 法遵部' },
+];
+
+export const ROLE_PAGES: Record<UserRole, string[]> = {
+  assessor: ['home', 'risk-assessment', 'risk-assessment-form', 'risk-assessment-view', 'risk-assessment-send', 'self-assessment'],
+  maintainer: ['home', 'question-bank', 'question-bank-edit', 'question-bank-design'],
+  reviewer: ['home', 'question-bank-review', 'deficiency-tracking'],
+};
+
 interface AppContextType {
+  currentUser: AppUser;
+  setCurrentUserId: (id: string) => void;
   isDarkMode: boolean;
   setIsDarkMode: (v: boolean) => void;
   toggleDarkMode: () => void;
@@ -121,6 +145,8 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
+  const [currentUserId, setCurrentUserId] = useState(APP_USERS[1].id);
+  const currentUser = APP_USERS.find((user) => user.id === currentUserId) || APP_USERS[1];
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [selectedYear, setSelectedYear] = useState(2025);
   const [isYearDropdownOpen, setIsYearDropdownOpen] = useState(false);
@@ -145,6 +171,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   return (
     <AppContext.Provider value={{
+      currentUser, setCurrentUserId,
       isDarkMode, setIsDarkMode, toggleDarkMode,
       selectedYear, setSelectedYear,
       isYearDropdownOpen, setIsYearDropdownOpen, toggleYearDropdown,

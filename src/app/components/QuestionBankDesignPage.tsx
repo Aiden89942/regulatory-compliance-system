@@ -118,8 +118,26 @@ export default function QuestionBankDesignPage() {
     'internal-control': [],
   });
   const [designed, setDesigned] = useState(false);
+  const [selfAssessmentFilter, setSelfAssessmentFilter] = useState('');
+  const [responsibleFilter, setResponsibleFilter] = useState('');
 
   const categories = useMemo(() => getQuestionBankByTemplate(template), [template]);
+  const selfAssessmentOptions = useMemo(
+    () => [...new Set(categories.map((category) => category.department).filter(Boolean))],
+    [categories],
+  );
+  const responsibleOptions = useMemo(
+    () => [...new Set(categories.map((category) => category.responsibleUnit).filter(Boolean))],
+    [categories],
+  );
+  const visibleCategories = useMemo(
+    () => categories.filter((category) => {
+      if (selfAssessmentFilter && category.department !== selfAssessmentFilter) return false;
+      if (responsibleFilter && category.responsibleUnit !== responsibleFilter) return false;
+      return true;
+    }),
+    [categories, selfAssessmentFilter, responsibleFilter],
+  );
   const selectedIds = selected[template];
 
   const previewGroups = useMemo(() => {
@@ -140,6 +158,8 @@ export default function QuestionBankDesignPage() {
   const switchTemplate = (next: QuestionTemplate) => {
     setTemplate(next);
     setDesigned(false);
+    setSelfAssessmentFilter('');
+    setResponsibleFilter('');
   };
 
   const toggleRow = (rowId: string) => {
@@ -240,7 +260,42 @@ export default function QuestionBankDesignPage() {
                 })}
               </div>
 
-              {categories.map((category) => {
+              <div className="grid grid-cols-2 gap-[12px] w-full">
+                <label className="flex flex-col gap-[6px] min-w-0">
+                  <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[13px] ${isDarkMode ? 'text-[#99A1AF]' : 'text-[#747480]'}`}>自評單位</p>
+                  <select
+                    value={selfAssessmentFilter}
+                    onChange={(event) => setSelfAssessmentFilter(event.target.value)}
+                    className={`h-[40px] w-full rounded-[8px] px-[8px] border outline-none font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] ${isDarkMode ? 'bg-[#1a1a24] border-[#474756] text-white' : 'bg-white border-[#ececf3] text-[#1a1a24]'}`}
+                  >
+                    <option value="">全部</option>
+                    {selfAssessmentOptions.map((option) => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="flex flex-col gap-[6px] min-w-0">
+                  <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[13px] ${isDarkMode ? 'text-[#99A1AF]' : 'text-[#747480]'}`}>負責單位</p>
+                  <select
+                    value={responsibleFilter}
+                    onChange={(event) => setResponsibleFilter(event.target.value)}
+                    className={`h-[40px] w-full rounded-[8px] px-[8px] border outline-none font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] ${isDarkMode ? 'bg-[#1a1a24] border-[#474756] text-white' : 'bg-white border-[#ececf3] text-[#1a1a24]'}`}
+                  >
+                    <option value="">全部</option>
+                    {responsibleOptions.map((option) => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              {visibleCategories.length === 0 ? (
+                <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] ${isDarkMode ? 'text-[#99A1AF]' : 'text-[#747480]'}`}>
+                  沒有符合篩選條件的題目
+                </p>
+              ) : null}
+
+              {visibleCategories.map((category) => {
                 const rowIds = category.rows.map((row) => row.id);
                 const checkedCount = rowIds.filter((id) => selectedIds.includes(id)).length;
                 const allChecked = checkedCount === rowIds.length && rowIds.length > 0;

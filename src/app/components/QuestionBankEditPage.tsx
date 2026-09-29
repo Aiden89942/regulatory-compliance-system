@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import Header from './Header';
 import Footer from './Footer';
@@ -7,9 +7,23 @@ import {
   QuestionTemplate,
   InherentRisk,
   TEMPLATE_OPTIONS,
+  COMPLIANCE_ANSWER_OPTIONS,
+  DEFAULT_CONTROL_ANSWER_OPTIONS,
   findQuestionRow,
+  getAnswerOptions,
   getQuestionBankByTemplate,
+  getTemplateLabel,
+  setControlAnswerOptions,
 } from '../data/questionBankData';
+import {
+  ALL_DEPARTMENTS_LABEL,
+  ASSESSMENT_DEPARTMENTS,
+  RESPONSIBLE_UNITS,
+  formatSelfAssessmentUnits,
+  matchResponsibleUnit,
+  matchSelfAssessmentUnits,
+  submitQuestionnaireForReview,
+} from '../data/questionnaireReviewStore';
 
 const RISK_OPTIONS: { value: InherentRisk; label: string }[] = [
   { value: 'high', label: '高風險' },
@@ -117,6 +131,25 @@ function SelectField({
   );
 }
 
+function FixedSingleChoice({ label, options }: { label: string; options: string[] }) {
+  return (
+    <div className="flex flex-col gap-[8px] items-start shrink-0 w-full">
+      <FieldLabel text={label} />
+      <div className="bg-white relative rounded-[8px] w-full">
+        <div className="flex gap-[24px] items-center px-[12px] h-[48px] pointer-events-none select-none" aria-disabled="true">
+          {options.map((option) => (
+            <div key={option} className="flex gap-[8px] items-center">
+              <div className="size-[20px] rounded-full border border-[#c4c4cd] bg-white shrink-0" />
+              <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[23px] text-[#2e2e38] text-[16px] tracking-[0.48px]">{option}</p>
+            </div>
+          ))}
+        </div>
+        <div aria-hidden="true" className="absolute border border-[#ececf3] border-solid inset-0 pointer-events-none rounded-[8px]" />
+      </div>
+    </div>
+  );
+}
+
 function SectionTitle({ text }: { text: string }) {
   return (
     <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] leading-[normal] text-[#1a1a24] text-[20px] tracking-[0.6px]" style={{ fontVariationSettings: "'wght' 700" }}>
@@ -134,6 +167,7 @@ interface FormState {
   process: string;
   department: string;
   responsibleUnit: string;
+  selfAssessmentUnits: string[];
   internalRule: string;
   regulation: string;
   followProcedure: string;
@@ -148,6 +182,7 @@ interface FormState {
   inherentRisk: InherentRisk;
   controlLevel: InherentRisk;
   residualRisk: InherentRisk;
+  checkOptions: string[];
 }
 
 function emptyState(): FormState {
@@ -156,6 +191,7 @@ function emptyState(): FormState {
     process: '',
     department: '',
     responsibleUnit: '',
+    selfAssessmentUnits: [],
     internalRule: '',
     regulation: '',
     followProcedure: '',
@@ -170,6 +206,7 @@ function emptyState(): FormState {
     inherentRisk: 'medium',
     controlLevel: 'medium',
     residualRisk: 'low',
+    checkOptions: [...DEFAULT_CONTROL_ANSWER_OPTIONS],
   };
 }
 
@@ -191,12 +228,12 @@ function buildState(template: QuestionTemplate, rowId: string, isNew: boolean): 
   const fallback = getQuestionBankByTemplate(template)[0];
   const category = found?.category || fallback;
   const row = found?.row || fallback.rows[0];
-
   return {
     riskCategory: category.riskCategory,
     process: category.process,
     department: category.department,
-    responsibleUnit: category.responsibleUnit,
+    responsibleUnit: matchResponsibleUnit(category.responsibleUnit),
+    selfAssessmentUnits: matchSelfAssessmentUnits(category.department),
     internalRule: category.internalRule,
     regulation: row.externalRule,
     followProcedure: row.controlMeasure,
@@ -211,6 +248,7 @@ function buildState(template: QuestionTemplate, rowId: string, isNew: boolean): 
     inherentRisk: row.inherentRisk,
     controlLevel: 'medium',
     residualRisk: row.inherentRisk === 'high' ? 'medium' : 'low',
+    checkOptions: getAnswerOptions('internal-control', row.id),
   };
 }
 
@@ -226,16 +264,28 @@ export default function QuestionBankEditPage() {
   const [form, setForm] = useState<FormState>(() => buildState(initialTemplate, rowId, isNew));
   const [saved, setSaved] = useState(false);
   const [customClass, setCustomClass] = useState<Partial<Record<ClassFieldKey, boolean>>>({});
+  const [selfAssessmentOpen, setSelfAssessmentOpen] = useState(false);
+  const selfAssessmentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setTemplate(initialTemplate);
     setSaved(false);
     setCustomClass({});
+    setSelfAssessmentOpen(false);
     setForm(buildState(initialTemplate, rowId, isNew));
   }, [initialTemplate, rowId, isNew]);
 
+  useEffect(() => {
+    if (!selfAssessmentOpen) return;
+    const close = (event: MouseEvent) => {
+      if (!selfAssessmentRef.current?.contains(event.target as Node)) setSelfAssessmentOpen(false);
+    };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [selfAssessmentOpen]);
+
   const formTitle = useMemo(
-    () => (template === 'compliance' ? '法令遵循定期評估表' : '內部控制制度自行查核表'),
+    () => (template === 'compliance' ? '法令遵循自行評估表' : '內部控制制度自行查核表'),
     [template]
   );
 
@@ -269,13 +319,70 @@ export default function QuestionBankEditPage() {
         riskCategory: category.riskCategory,
         process: category.process,
         department: category.department,
-        responsibleUnit: category.responsibleUnit,
+        responsibleUnit: matchResponsibleUnit(category.responsibleUnit),
+        selfAssessmentUnits: matchSelfAssessmentUnits(category.department),
         internalRule: category.internalRule,
       }));
       return;
     }
 
     setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const setResponsibleUnit = (value: string) => {
+    setSaved(false);
+    setForm((prev) => ({
+      ...prev,
+      responsibleUnit: value,
+    }));
+  };
+
+  const toggleSelfAssessmentUnit = (unit: string) => {
+    if (!form.responsibleUnit) return;
+    setSaved(false);
+    setForm((prev) => {
+      const allSelected = ASSESSMENT_DEPARTMENTS.every((dept) => prev.selfAssessmentUnits.includes(dept));
+      if (unit === ALL_DEPARTMENTS_LABEL) {
+        return { ...prev, selfAssessmentUnits: allSelected ? [] : [...ASSESSMENT_DEPARTMENTS] };
+      }
+      const exists = prev.selfAssessmentUnits.includes(unit);
+      const next = exists
+        ? prev.selfAssessmentUnits.filter((item) => item !== unit)
+        : [...prev.selfAssessmentUnits, unit];
+      return { ...prev, selfAssessmentUnits: next };
+    });
+  };
+
+  const writeCheckOptions = (options: string[]) => {
+    setSaved(false);
+    setForm((prev) => ({ ...prev, checkOptions: options }));
+    if (rowId) setControlAnswerOptions(rowId, options);
+  };
+
+  const updateCheckOption = (index: number, value: string) => {
+    writeCheckOptions(form.checkOptions.map((option, itemIndex) => (itemIndex === index ? value : option)));
+  };
+
+  const removeCheckOption = (index: number) => {
+    if (form.checkOptions.length <= 1) return;
+    writeCheckOptions(form.checkOptions.filter((_, itemIndex) => itemIndex !== index));
+  };
+
+  const addCheckOption = () => {
+    writeCheckOptions([...form.checkOptions, '']);
+  };
+
+  const submitForReview = () => {
+    if (template === 'internal-control' && rowId) setControlAnswerOptions(rowId, form.checkOptions);
+    submitQuestionnaireForReview({
+      id: rowId || `${template}-${Date.now()}`,
+      template,
+      title: formTitle,
+      process: form.process,
+      responsibleUnit: form.responsibleUnit,
+      selfAssessmentUnits: form.selfAssessmentUnits,
+    });
+    setSaved(true);
   };
 
   const classSelect = (key: ClassFieldKey, label: string, className = 'flex-1') => {
@@ -341,32 +448,40 @@ export default function QuestionBankEditPage() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => setSaved(true)}
+                        onClick={submitForReview}
                         className="bg-[#ffe600] border-none rounded-[4px] px-[16px] py-[10px] cursor-pointer hover:bg-[#ffd000] transition-colors"
                       >
                         <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24] text-[15px]" style={{ fontVariationSettings: "'wght' 700" }}>
-                          {saved ? '已儲存' : '儲存'}
+                          {saved ? '已送審' : '儲存'}
                         </p>
                       </button>
                     </div>
                   </div>
-                  <div className="flex gap-[8px] flex-wrap">
-                    {TEMPLATE_OPTIONS.map((option) => {
-                      const active = template === option.value;
-                      return (
-                        <button
-                          key={option.value}
-                          type="button"
-                          onClick={() => switchTemplate(option.value)}
-                          className={`border-none cursor-pointer rounded-[4px] px-[12px] py-[8px] ${active ? 'bg-[#ffe600]' : 'bg-white/15'}`}
-                        >
-                          <p className={`font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[13px] ${active ? 'text-[#1a1a24]' : 'text-white'}`} style={{ fontWeight: 700 }}>
-                            {option.label}
-                          </p>
-                        </button>
-                      );
-                    })}
-                  </div>
+                  {isNew ? (
+                    <div className="flex gap-[8px] flex-wrap">
+                      {TEMPLATE_OPTIONS.map((option) => {
+                        const active = template === option.value;
+                        return (
+                          <button
+                            key={option.value}
+                            type="button"
+                            onClick={() => switchTemplate(option.value)}
+                            className={`border-none cursor-pointer rounded-[4px] px-[12px] py-[8px] ${active ? 'bg-[#ffe600]' : 'bg-white/15'}`}
+                          >
+                            <p className={`font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[13px] ${active ? 'text-[#1a1a24]' : 'text-white'}`} style={{ fontWeight: 700 }}>
+                              {option.label}
+                            </p>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="bg-[#ffe600] rounded-[4px] px-[12px] py-[8px]">
+                      <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[13px] text-[#1a1a24]" style={{ fontWeight: 700 }}>
+                        {getTemplateLabel(template)}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -379,12 +494,65 @@ export default function QuestionBankEditPage() {
                     選擇既有分類後，題目會與同一組收在一起。若要建立新的一組，請選「新增分類」。
                   </p>
                   <div className="flex gap-[24px] items-start w-full">
-                    {classSelect('riskCategory', template === 'compliance' ? '法遵風險' : '流程類別')}
-                    {classSelect('process', template === 'compliance' ? '業務流程' : '業務項目')}
+                    {template === 'internal-control' ? classSelect('riskCategory', '流程類別') : null}
+                    {classSelect('process', '業務項目', template === 'compliance' ? 'w-full' : 'flex-1')}
                   </div>
                   <div className="flex gap-[24px] items-start w-full">
-                    {classSelect('department', '部門')}
-                    {classSelect('responsibleUnit', '負責單位')}
+                    <div className="flex flex-col gap-[8px] items-start shrink-0 min-w-0 flex-1">
+                      <SelectField
+                        className="w-full"
+                        label="負責單位"
+                        value={form.responsibleUnit}
+                        onChange={setResponsibleUnit}
+                        options={[
+                          { value: '', label: '請選擇' },
+                          ...RESPONSIBLE_UNITS.map((unit) => ({ value: unit, label: unit })),
+                        ]}
+                      />
+                    </div>
+                    <div ref={selfAssessmentRef} className={`flex flex-col gap-[8px] items-start shrink-0 min-w-0 flex-1 relative ${selfAssessmentOpen ? 'z-20' : ''} ${form.responsibleUnit ? '' : 'opacity-50'}`}>
+                      <FieldLabel text="自評單位" />
+                      <button
+                        type="button"
+                        disabled={!form.responsibleUnit}
+                        onClick={() => setSelfAssessmentOpen((open) => !open)}
+                        className="bg-white relative rounded-[8px] h-[48px] w-full overflow-hidden border-none cursor-pointer disabled:cursor-not-allowed px-[12px] text-left"
+                      >
+                        <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[23px] text-[16px] tracking-[0.48px] truncate ${form.selfAssessmentUnits.length ? 'text-[#2e2e38]' : 'text-[#747480]'}`}>
+                          {form.responsibleUnit
+                            ? (form.selfAssessmentUnits.length ? formatSelfAssessmentUnits(form.selfAssessmentUnits) : '請選擇')
+                            : '請先選擇負責單位'}
+                        </p>
+                        <div aria-hidden="true" className="absolute border border-[#ececf3] border-solid inset-0 pointer-events-none rounded-[8px]" />
+                      </button>
+                      {selfAssessmentOpen && form.responsibleUnit ? (
+                        <div className="absolute top-[76px] left-0 z-20 bg-white rounded-[8px] w-full shadow-lg">
+                          <div className="flex flex-col gap-[12px] px-[12px] py-[14px] max-h-[280px] overflow-y-auto">
+                            <label className="flex gap-[8px] items-center cursor-pointer">
+                              <input
+                                type="checkbox"
+                                className="size-[18px] shrink-0"
+                                checked={ASSESSMENT_DEPARTMENTS.every((dept) => form.selfAssessmentUnits.includes(dept))}
+                                onChange={() => toggleSelfAssessmentUnit(ALL_DEPARTMENTS_LABEL)}
+                              />
+                              <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] text-[#2e2e38]">{ALL_DEPARTMENTS_LABEL}</p>
+                            </label>
+                            {ASSESSMENT_DEPARTMENTS.map((dept) => (
+                              <label key={dept} className="flex gap-[8px] items-center cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  className="size-[18px] shrink-0"
+                                  checked={form.selfAssessmentUnits.includes(dept)}
+                                  onChange={() => toggleSelfAssessmentUnit(dept)}
+                                />
+                                <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] text-[#2e2e38]">{dept}</p>
+                              </label>
+                            ))}
+                          </div>
+                          <div aria-hidden="true" className="absolute border border-[#ececf3] border-solid inset-0 pointer-events-none rounded-[8px]" />
+                        </div>
+                      ) : null}
+                    </div>
                   </div>
                   {classSelect('internalRule', '內部規章', 'w-full')}
                 </div>
@@ -394,7 +562,7 @@ export default function QuestionBankEditPage() {
                     <SectionTitle text="法遵自評／法遵自查" />
                     <AreaField label="應遵循之法令規章" value={form.regulation} onChange={(v) => setField('regulation', v)} placeholder="請輸入應遵循之法令規章" />
                     <AreaField label="遵循程序" value={form.followProcedure} onChange={(v) => setField('followProcedure', v)} placeholder="對應原查核項目內規要求；相同控制措施先調和文字，不同則分別列題" />
-                    <AreaField label="自行評估程序" value={form.assessmentProcedure} onChange={(v) => setField('assessmentProcedure', v)} placeholder="對應原查核說明暨查核方式，取兩者聯集" />
+                    <FixedSingleChoice label="自行評估程序" options={COMPLIANCE_ANSWER_OPTIONS} />
                   </div>
                 ) : (
                   <>
@@ -402,6 +570,36 @@ export default function QuestionBankEditPage() {
                       <SectionTitle text="內控自查" />
                       <AreaField label="自查依據" value={form.checkBasis} onChange={(v) => setField('checkBasis', v)} placeholder="對應原自行查核依據" />
                       <AreaField label="自行查核程序" value={form.checkProcedure} onChange={(v) => setField('checkProcedure', v)} placeholder="對應原自行查核項目" />
+                      <div className="flex flex-col gap-[8px] items-start w-full">
+                        <FieldLabel text="作答選項" />
+                        {form.checkOptions.map((option, index) => (
+                          <div key={index} className="flex gap-[8px] items-center w-full">
+                            <div className="bg-white relative rounded-[8px] h-[48px] flex-1 min-w-0">
+                              <input
+                                value={option}
+                                onChange={(event) => updateCheckOption(index, event.target.value)}
+                                className="block h-[48px] w-full bg-transparent border-none outline-none px-[12px] font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] text-[#2e2e38]"
+                              />
+                              <div aria-hidden="true" className="absolute border border-[#ececf3] border-solid inset-0 pointer-events-none rounded-[8px]" />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeCheckOption(index)}
+                              disabled={form.checkOptions.length <= 1}
+                              className="bg-[#f6f6fa] border-none rounded-[4px] px-[12px] h-[48px] cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                              <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] text-[#1a1a24]">移除</p>
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={addCheckOption}
+                          className="bg-transparent border-none cursor-pointer p-0"
+                        >
+                          <p className="underline font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] text-[#1a1a24]">新增選項</p>
+                        </button>
+                      </div>
                     </div>
                     <div className="flex flex-col gap-[16px] items-start w-full">
                       <SectionTitle text="RCSA" />

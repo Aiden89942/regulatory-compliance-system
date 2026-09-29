@@ -25,8 +25,10 @@ import SupplierRiskAssessmentResultPage from './components/SupplierRiskAssessmen
 import QuestionBankPage from './components/QuestionBankPage';
 import QuestionBankEditPage from './components/QuestionBankEditPage';
 import QuestionBankDesignPage from './components/QuestionBankDesignPage';
+import QuestionBankReviewPage from './components/QuestionBankReviewPage';
 import SelfAssessmentPage from './components/SelfAssessmentPage';
 import ManagementReportPage from './components/ManagementReportPage';
+import DeficiencyTrackingPage from './components/DeficiencyTrackingPage';
 import { useNavigate } from 'react-router';
 import { addSearchHistory, searchCompanies } from './components/companyLookup';
 
@@ -241,9 +243,17 @@ function QuestionBankDesignPageWrapper() {
   return <QuestionBankDesignPage />;
 }
 
+function QuestionBankReviewPageWrapper() {
+  return <QuestionBankReviewPage />;
+}
+
 
 function SelfAssessmentPageWrapper() {
   return <SelfAssessmentPage />;
+}
+
+function DeficiencyTrackingPageWrapper() {
+  return <DeficiencyTrackingPage />;
 }
 
 function RiskAssessmentSendPageWrapper() {
@@ -318,7 +328,9 @@ export const router = createHashRouter([
       { path: 'question-bank', Component: QuestionBankPageWrapper },
       { path: 'question-bank-edit', Component: QuestionBankEditPageWrapper },
       { path: 'question-bank-design', Component: QuestionBankDesignPageWrapper },
+      { path: 'question-bank-review', Component: QuestionBankReviewPageWrapper },
       { path: 'self-assessment', Component: SelfAssessmentPageWrapper },
+      { path: 'deficiency-tracking', Component: DeficiencyTrackingPageWrapper },
       { path: 'management-report', Component: ManagementReportPageWrapper },
       { path: '*', Component: NotFound },
     ],

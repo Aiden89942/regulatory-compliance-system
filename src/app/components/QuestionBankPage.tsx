@@ -87,6 +87,13 @@ export default function QuestionBankPage() {
               <div className="flex items-center gap-[16px]">
                 <button
                   type="button"
+                  onClick={() => onNavigate('question-bank-review')}
+                  className="bg-[#ffe600] border-none rounded-[8px] px-[20px] py-[12px] cursor-pointer hover:bg-[#ffd000] transition-colors"
+                >
+                  <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24] text-[16px]" style={{ fontWeight: 700 }}>問卷審核</p>
+                </button>
+                <button
+                  type="button"
                   onClick={() => onNavigate('question-bank-design', undefined, { template })}
                   className="bg-[#ffe600] border-none rounded-[8px] px-[20px] py-[12px] cursor-pointer hover:bg-[#ffd000] transition-colors"
                 >
@@ -146,7 +153,7 @@ export default function QuestionBankPage() {
 
             {/* 搜尋區塊 */}
             <div className={`${isDarkMode ? 'bg-[#2e2e38]' : 'bg-white'} rounded-[12px] p-[32px] shadow-sm mb-[24px] w-full transition-colors`}>
-              <h2 className={`font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[18px] mb-[16px] ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`} style={{ fontWeight: 700 }}>輸入業務流程或部門名稱進行查詢</h2>
+              <h2 className={`font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[18px] mb-[16px] ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`} style={{ fontWeight: 700 }}>輸入業務項目或部門名稱進行查詢</h2>
               <div className="flex gap-[16px] items-center">
                 <div className={`flex-1 ${isDarkMode ? 'bg-[#1a1a24]' : 'bg-[#f6f6fa]'} rounded-[8px] flex items-center px-[16px] py-[12px] border border-transparent focus-within:border-[#ffe600] transition-all`}>
                   <div className="shrink-0 size-[20px] mr-[12px]">
@@ -156,7 +163,7 @@ export default function QuestionBankPage() {
                   </div>
                   <input
                     type="text"
-                    placeholder="輸入業務流程或部門名稱等關鍵字"
+                    placeholder="輸入業務項目或部門名稱等關鍵字"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className={`bg-transparent border-none outline-none flex-1 font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] ${isDarkMode ? 'text-white placeholder:text-[#474756]' : 'text-[#1a1a24] placeholder:text-[#99A1AF]'}`}
@@ -174,11 +181,8 @@ export default function QuestionBankPage() {
                 <table className="w-full border-collapse table-fixed">
                   <thead>
                     <tr className={`${isDarkMode ? 'bg-[#1a1a24]' : 'bg-[#f6f6fa]'} transition-colors`}>
-                      <th rowSpan={2} className={`border-b border-r ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px] text-left w-[110px]`}>
-                        <p className={`font-['EYInterstate:Bold',sans-serif] text-[14px] uppercase tracking-wider ${isDarkMode ? 'text-[#99A1AF]' : 'text-[#747480]'}`} style={{ fontWeight: 700 }}>法遵風險</p>
-                      </th>
-                      <th rowSpan={2} className={`border-b border-r ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px] text-left w-[100px]`}>
-                        <p className={`font-['EYInterstate:Bold',sans-serif] text-[14px] uppercase tracking-wider ${isDarkMode ? 'text-[#99A1AF]' : 'text-[#747480]'}`} style={{ fontWeight: 700 }}>業務流程</p>
+                      <th rowSpan={2} className={`border-b border-r ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px] text-left w-[120px]`}>
+                        <p className={`font-['EYInterstate:Bold',sans-serif] text-[14px] uppercase tracking-wider ${isDarkMode ? 'text-[#99A1AF]' : 'text-[#747480]'}`} style={{ fontWeight: 700 }}>業務項目</p>
                       </th>
                       <th rowSpan={2} className={`border-b border-r ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px] text-left w-[100px]`}>
                         <p className={`font-['EYInterstate:Bold',sans-serif] text-[14px] uppercase tracking-wider ${isDarkMode ? 'text-[#99A1AF]' : 'text-[#747480]'}`} style={{ fontWeight: 700 }}>部門</p>
@@ -224,9 +228,6 @@ export default function QuestionBankPage() {
                           <tr key={row.id} className={`${isDarkMode ? 'hover:bg-[#353545]' : 'hover:bg-[#fafafd]'} transition-colors`}>
                             {rowIdx === 0 && (
                               <>
-                                <td rowSpan={category.rows.length} className={`border-b border-r ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px] align-top`}>
-                                  <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] leading-[22px] break-words whitespace-normal ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`}>{category.riskCategory}</p>
-                                </td>
                                 <td rowSpan={category.rows.length} className={`border-b border-r ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px] align-top text-center`}>
                                   <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] leading-[22px] break-words whitespace-normal ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`}>{category.process}</p>
                                 </td>

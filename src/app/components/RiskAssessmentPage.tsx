@@ -92,11 +92,11 @@ const OUTSOURCING_BY_YEAR: Record<number, AssessmentItem[]> = {
 
 const SUPPLIER_BY_YEAR: Record<number, AssessmentItem[]> = {
   2026: [
-    { projectName: '基金帳務升級流程', supplier: '信託部', risk: 'medium', status: '等待廠商回覆', statusType: 'waiting', deadline: '2026.04.15', actionType: 'viewOnly' },
-    { projectName: '門禁監控維護流程', supplier: '安全管理部', risk: 'medium', status: '等待廠商回覆', statusType: 'waiting', deadline: '2026.04.30', actionType: 'viewOnly' },
-    { projectName: '備份異地存放流程', supplier: '營運中心', risk: 'low', status: '廠商已回覆', statusType: 'replied', deadline: '2026.03.31', actionType: 'approved' },
-    { projectName: '郵件系統遷移流程', supplier: '資訊科技處', risk: 'low', status: '廠商已回覆', statusType: 'replied', deadline: '2026.04.20', actionType: 'approved' },
-    { projectName: '內部通訊建置流程', supplier: '數位平台部', risk: 'high', status: '廠商已回覆', statusType: 'replied', deadline: '2026.03.15', actionType: 'approved' },
+    { projectName: '基金帳務升級流程', supplier: '信託部', risk: 'medium', status: '等待單位回覆', statusType: 'waiting', deadline: '2026.04.15', actionType: 'viewOnly' },
+    { projectName: '門禁監控維護流程', supplier: '安全管理部', risk: 'medium', status: '等待單位回覆', statusType: 'waiting', deadline: '2026.04.30', actionType: 'viewOnly' },
+    { projectName: '備份異地存放流程', supplier: '營運中心', risk: 'low', status: '單位已回覆', statusType: 'replied', deadline: '2026.03.31', actionType: 'approved' },
+    { projectName: '郵件系統遷移流程', supplier: '資訊科技處', risk: 'low', status: '單位已回覆', statusType: 'replied', deadline: '2026.04.20', actionType: 'approved' },
+    { projectName: '內部通訊建置流程', supplier: '數位平台部', risk: 'high', status: '單位已回覆', statusType: 'replied', deadline: '2026.03.15', actionType: 'approved' },
     { projectName: '資安威脅偵測流程', supplier: '資安監控小組', risk: 'high', status: '已逾期', statusType: 'overdue', deadline: '2026.02.20', actionType: 'notifyVendor' },
     { projectName: '網路維運委外流程', supplier: '通訊網路部', risk: 'high', status: '已逾期', statusType: 'overdue', deadline: '2026.03.10', actionType: 'notifyVendor' },
     { projectName: '數據中心託管服務流程', supplier: '基礎建設部', risk: 'high', status: '已逾期', statusType: 'overdue', deadline: '2026.02.28', actionType: 'notifyVendor' },
@@ -105,12 +105,12 @@ const SUPPLIER_BY_YEAR: Record<number, AssessmentItem[]> = {
     { projectName: 'ERP 支援服務流程', supplier: '會計部', risk: 'high', status: '已逾期', statusType: 'overdue', deadline: '2026.02.10', actionType: 'notifyVendor' },
   ],
   2025: [
-    { projectName: '法遵監控平台流程', supplier: '合規部', risk: 'medium', status: '等待廠商回覆', statusType: 'waiting', deadline: '2025.04.10', actionType: 'viewOnly' },
-    { projectName: '印表機維護流程', supplier: '總務組', risk: 'medium', status: '等待廠商回覆', statusType: 'waiting', deadline: '2025.04.25', actionType: 'viewOnly' },
-    { projectName: '資料庫授權管理流程', supplier: '系統管理組', risk: 'medium', status: '等待廠商回覆', statusType: 'waiting', deadline: '2025.05.01', actionType: 'viewOnly' },
-    { projectName: '端點安全防護流程', supplier: '資安二科', risk: 'low', status: '廠商已回覆', statusType: 'replied', deadline: '2025.03.20', actionType: 'approved' },
-    { projectName: '雲端運算應用流程', supplier: '新技術開發部', risk: 'low', status: '廠商已回覆', statusType: 'replied', deadline: '2025.03.31', actionType: 'approved' },
-    { projectName: '身分認證管理流程', supplier: '權限控管組', risk: 'low', status: '廠商已回覆', statusType: 'replied', deadline: '2025.04.15', actionType: 'approved' },
+    { projectName: '法遵監控平台流程', supplier: '合規部', risk: 'medium', status: '等待單位回覆', statusType: 'waiting', deadline: '2025.04.10', actionType: 'viewOnly' },
+    { projectName: '印表機維護流程', supplier: '總務組', risk: 'medium', status: '等待單位回覆', statusType: 'waiting', deadline: '2025.04.25', actionType: 'viewOnly' },
+    { projectName: '資料庫授權管理流程', supplier: '系統管理組', risk: 'medium', status: '等待單位回覆', statusType: 'waiting', deadline: '2025.05.01', actionType: 'viewOnly' },
+    { projectName: '端點安全防護流程', supplier: '資安二科', risk: 'low', status: '單位已回覆', statusType: 'replied', deadline: '2025.03.20', actionType: 'approved' },
+    { projectName: '雲端運算應用流程', supplier: '新技術開發部', risk: 'low', status: '單位已回覆', statusType: 'replied', deadline: '2025.03.31', actionType: 'approved' },
+    { projectName: '身分認證管理流程', supplier: '權限控管組', risk: 'low', status: '單位已回覆', statusType: 'replied', deadline: '2025.04.15', actionType: 'approved' },
     { projectName: '桌面虛擬化流程', supplier: '資訊服中心', risk: 'high', status: '已逾期', statusType: 'overdue', deadline: '2025.02.28', actionType: 'notifyVendor' },
     { projectName: '負載平衡設定流程', supplier: '網路二科', risk: 'high', status: '已逾期', statusType: 'overdue', deadline: '2025.01.31', actionType: 'notifyVendor' },
     { projectName: '數位簽章驗證流程', supplier: '認證小組', risk: 'high', status: '已逾期', statusType: 'overdue', deadline: '2025.02.15', actionType: 'notifyVendor' },
@@ -119,31 +119,31 @@ const SUPPLIER_BY_YEAR: Record<number, AssessmentItem[]> = {
     { projectName: '機房監控維修流程', supplier: '設施管理組', risk: 'high', status: '已逾期', statusType: 'overdue', deadline: '2025.03.05', actionType: 'notifyVendor' },
   ],
   2024: [
-    { projectName: '自動測試部署流程', supplier: '品保部', risk: 'medium', status: '等待廠商回覆', statusType: 'waiting', deadline: '2024.04.10', actionType: 'viewOnly' },
-    { projectName: '軟體資產盤點流程', supplier: '版權管理組', risk: 'medium', status: '等待廠商回覆', statusType: 'waiting', deadline: '2024.04.25', actionType: 'viewOnly' },
-    { projectName: 'SSL 憑證管理流程', supplier: '網域服務組', risk: 'low', status: '廠商已回覆', statusType: 'replied', deadline: '2024.03.20', actionType: 'approved' },
-    { projectName: '授權軟體續約流程', supplier: '行政處', risk: 'low', status: '廠商已回覆', statusType: 'replied', deadline: '2024.03.31', actionType: 'approved' },
-    { projectName: 'UPS 備援檢修流程', supplier: '機房營運組', risk: 'low', status: '廠商已回覆', statusType: 'replied', deadline: '2024.04.15', actionType: 'approved' },
+    { projectName: '自動測試部署流程', supplier: '品保部', risk: 'medium', status: '等待單位回覆', statusType: 'waiting', deadline: '2024.04.10', actionType: 'viewOnly' },
+    { projectName: '軟體資產盤點流程', supplier: '版權管理組', risk: 'medium', status: '等待單位回覆', statusType: 'waiting', deadline: '2024.04.25', actionType: 'viewOnly' },
+    { projectName: 'SSL 憑證管理流程', supplier: '網域服務組', risk: 'low', status: '單位已回覆', statusType: 'replied', deadline: '2024.03.20', actionType: 'approved' },
+    { projectName: '授權軟體續約流程', supplier: '行政處', risk: 'low', status: '單位已回覆', statusType: 'replied', deadline: '2024.03.31', actionType: 'approved' },
+    { projectName: 'UPS 備援檢修流程', supplier: '機房營運組', risk: 'low', status: '單位已回覆', statusType: 'replied', deadline: '2024.04.15', actionType: 'approved' },
     { projectName: '資安事件應處流程', supplier: '應變小組', risk: 'high', status: '已逾期', statusType: 'overdue', deadline: '2024.02.28', actionType: 'notifyVendor' },
     { projectName: '交換器更新流程', supplier: '網管一科', risk: 'high', status: '已逾期', statusType: 'overdue', deadline: '2024.01.31', actionType: 'notifyVendor' },
     { projectName: '電話系統維護流程', supplier: '總機組', risk: 'high', status: '已逾期', statusType: 'overdue', deadline: '2024.02.15', actionType: 'notifyVendor' },
     { projectName: 'API 介接管理流程', supplier: '開發科', risk: 'high', status: '已逾期', statusType: 'overdue', deadline: '2024.03.05', actionType: 'notifyVendor' },
   ],
   2023: [
-    { projectName: '報表分析應用流程', supplier: '數據分析部', risk: 'medium', status: '等待廠商回覆', statusType: 'waiting', deadline: '2023.04.10', actionType: 'viewOnly' },
-    { projectName: '門禁系統升級流程', supplier: '警衛室', risk: 'medium', status: '等待廠商回覆', statusType: 'waiting', deadline: '2023.04.25', actionType: 'viewOnly' },
-    { projectName: '郵件歸檔管理流程', supplier: '資訊一科', risk: 'medium', status: '等待廠商回覆', statusType: 'waiting', deadline: '2023.05.01', actionType: 'viewOnly' },
-    { projectName: '伺服器虛擬化流程', supplier: '系統一科', risk: 'low', status: '廠商已回覆', statusType: 'replied', deadline: '2023.03.20', actionType: 'approved' },
-    { projectName: '備份軟體更新流程', supplier: '維運組', risk: 'low', status: '廠商已回覆', statusType: 'replied', deadline: '2023.03.31', actionType: 'approved' },
+    { projectName: '報表分析應用流程', supplier: '數據分析部', risk: 'medium', status: '等待單位回覆', statusType: 'waiting', deadline: '2023.04.10', actionType: 'viewOnly' },
+    { projectName: '門禁系統升級流程', supplier: '警衛室', risk: 'medium', status: '等待單位回覆', statusType: 'waiting', deadline: '2023.04.25', actionType: 'viewOnly' },
+    { projectName: '郵件歸檔管理流程', supplier: '資訊一科', risk: 'medium', status: '等待單位回覆', statusType: 'waiting', deadline: '2023.05.01', actionType: 'viewOnly' },
+    { projectName: '伺服器虛擬化流程', supplier: '系統一科', risk: 'low', status: '單位已回覆', statusType: 'replied', deadline: '2023.03.20', actionType: 'approved' },
+    { projectName: '備份軟體更新流程', supplier: '維運組', risk: 'low', status: '單位已回覆', statusType: 'replied', deadline: '2023.03.31', actionType: 'approved' },
     { projectName: '防火牆規則調整流程', supplier: '資安一科', risk: 'high', status: '已逾期', statusType: 'overdue', deadline: '2023.02.28', actionType: 'notifyVendor' },
     { projectName: '伺服器主機建置流程', supplier: '硬體維護組', risk: 'high', status: '已逾期', statusType: 'overdue', deadline: '2023.01.31', actionType: 'notifyVendor' },
     { projectName: '資料庫效能優化流程', supplier: 'DBA 組', risk: 'high', status: '已逾期', statusType: 'overdue', deadline: '2023.02.15', actionType: 'notifyVendor' },
     { projectName: '環控系統巡檢流程', supplier: '廠務組', risk: 'high', status: '已逾期', statusType: 'overdue', deadline: '2023.03.05', actionType: 'notifyVendor' },
   ],
   2022: [
-    { projectName: 'Wi-Fi 訊號優化流程', supplier: '網路二組', risk: 'medium', status: '等待廠商回覆', statusType: 'waiting', deadline: '2022.04.10', actionType: 'viewOnly' },
-    { projectName: '辦公電腦更換流程', supplier: '資訊服二科', risk: 'medium', status: '等待廠商回覆', statusType: 'waiting', deadline: '2022.04.25', actionType: 'viewOnly' },
-    { projectName: '防毒授權核對流程', supplier: '資安二組', risk: 'low', status: '廠商已回覆', statusType: 'replied', deadline: '2022.03.20', actionType: 'approved' },
+    { projectName: 'Wi-Fi 訊號優化流程', supplier: '網路二組', risk: 'medium', status: '等待單位回覆', statusType: 'waiting', deadline: '2022.04.10', actionType: 'viewOnly' },
+    { projectName: '辦公電腦更換流程', supplier: '資訊服二科', risk: 'medium', status: '等待單位回覆', statusType: 'waiting', deadline: '2022.04.25', actionType: 'viewOnly' },
+    { projectName: '防毒授權核對流程', supplier: '資安二組', risk: 'low', status: '單位已回覆', statusType: 'replied', deadline: '2022.03.20', actionType: 'approved' },
     { projectName: '郵件通訊管理流程', supplier: '資訊一組', risk: 'high', status: '已逾期', statusType: 'overdue', deadline: '2022.02.28', actionType: 'notifyVendor' },
     { projectName: '消防設施檢測流程', supplier: '安管組', risk: 'high', status: '已逾期', statusType: 'overdue', deadline: '2022.01.31', actionType: 'notifyVendor' },
     { projectName: '辦公軟體續約流程', supplier: '總務一組', risk: 'high', status: '已逾期', statusType: 'overdue', deadline: '2022.02.15', actionType: 'notifyVendor' },
@@ -165,7 +165,7 @@ function Breadcrumb({ onNavigate }: { onNavigate?: (page: string) => void }) {
           <path d="M6 12L10 8L6 4" stroke="#4A5565" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
         </svg>
       </div>
-      <p className="font-['Inter:Bold','Noto_Sans_JP:Bold',sans-serif] leading-[24px] text-[#1a1a24] text-[16px] tracking-[-0.3125px] whitespace-nowrap" style={{ fontWeight: 700 }}>法令遵循定期評估作業</p>
+      <p className="font-['Inter:Bold','Noto_Sans_JP:Bold',sans-serif] leading-[24px] text-[#1a1a24] text-[16px] tracking-[-0.3125px] whitespace-nowrap" style={{ fontWeight: 700 }}>法令遵循自行評估</p>
     </div>
   );
 }
@@ -197,8 +197,8 @@ function ExpiringDetailModal({
 
   if (!isOpen) return null;
 
-  const title = type === 'outsourcing' ? '即將到期 — 法令遵循定期評估作業' : '即將到期 — 內部控制制度自行查核';
-  const statusLabel = type === 'outsourcing' ? '已送出等待批准' : '等待廠商回覆';
+  const title = type === 'outsourcing' ? '即將到期 — 法令遵循自行評估' : '即將到期 — 內部控制制度自行查核';
+  const statusLabel = type === 'outsourcing' ? '已送出等待批准' : '等待單位回覆';
   const statusColor = type === 'outsourcing' ? '#EE762F' : '#2E7CF6';
 
   const riskLabelMap: Record<string, { label: string; bg: string; text: string }> = {
@@ -265,7 +265,7 @@ function ExpiringDetailModal({
           {/* Table Header */}
           <div className="flex items-center border-b border-[#e5e7eb] bg-[#fafafd] sticky top-0 z-[1]">
             <div className="flex items-center px-[32px] py-[12px] w-[260px] shrink-0">
-              <span className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#747480] text-[13px] tracking-[0.39px]" style={{ fontWeight: 700 }}>業務流程</span>
+              <span className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#747480] text-[13px] tracking-[0.39px]" style={{ fontWeight: 700 }}>業務項目</span>
             </div>
             <div className="flex items-center py-[12px] w-[180px] shrink-0">
               <span className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#747480] text-[13px] tracking-[0.39px]" style={{ fontWeight: 700 }}>部門</span>
@@ -328,7 +328,7 @@ function ExpiringDetailModal({
 function ExpiringCard({ year, onNavigate }: { year: number; onNavigate?: (page: string) => void }) {
   const outsourcingData = OUTSOURCING_BY_YEAR[year] || [];
   const supplierData = SUPPLIER_BY_YEAR[year] || [];
-  // 即將到期: outsourcing = 已送出等待批准 (sent), supplier = 等待廠商回覆 (waiting)
+  // 即將到期: outsourcing = 已送出等待批准 (sent), supplier = 等待單位回覆 (waiting)
   const outsourcingExpiring = outsourcingData.filter(d => d.statusType === 'sent');
   const supplierExpiring = supplierData.filter(d => d.statusType === 'waiting');
 
@@ -373,10 +373,10 @@ function ExpiringCard({ year, onNavigate }: { year: number; onNavigate?: (page: 
           </div>
           {/* Two rows: outsourcing sent + supplier waiting counts */}
           <div className="flex flex-col gap-[10px] items-start w-full">
-            {/* Row 1: 法令遵循定期評估作業 — 已送出等待批准 */}
+            {/* Row 1: 法令遵循自行評估 — 已送出等待批准 */}
             <div className="flex items-end justify-between w-full cursor-pointer group" onClick={() => setModalType('outsourcing')}>
               <div className="flex flex-col items-center justify-center pb-[4px]">
-                <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[23px] text-[#4a5565] text-[16px] tracking-[0.48px] whitespace-nowrap" style={{ fontVariationSettings: "'wght' 400" }}>{`法令遵循定期評估作業 `}</p>
+                <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[23px] text-[#4a5565] text-[16px] tracking-[0.48px] whitespace-nowrap" style={{ fontVariationSettings: "'wght' 400" }}>{`法令遵循自行評估 `}</p>
               </div>
               <div className="flex gap-[8px] items-end">
                 <p className="font-['EYInterstate:Bold',sans-serif] leading-[normal] text-[#ec5242] text-[32px] whitespace-nowrap">{outsourcingExpiring.length}</p>
@@ -392,7 +392,7 @@ function ExpiringCard({ year, onNavigate }: { year: number; onNavigate?: (page: 
                 </div>
               </div>
             </div>
-            {/* Row 2: 內部控制制度自行查核 — 等待廠商回覆 */}
+            {/* Row 2: 內部控制制度自行查核 — 等待單位回覆 */}
             <div className="flex items-end justify-between w-full cursor-pointer group" onClick={() => setModalType('supplier')}>
               <div className="flex flex-col items-center justify-center pb-[4px]">
                 <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[23px] text-[#4a5565] text-[16px] tracking-[0.48px] whitespace-nowrap" style={{ fontVariationSettings: "'wght' 400" }}>
@@ -432,7 +432,7 @@ function SummaryCard({ type, year, onNavigate }: { type: 'outsourcing' | 'suppli
   const isOutsourcing = type === 'outsourcing';
   const iconBg = isOutsourcing ? '#ddffdf' : '#ffedd4';
   const iconColor = isOutsourcing ? '#419D48' : '#EE762F';
-  const title = isOutsourcing ? '法令遵循定期評估作業 ' : '內部控制制度自行查核';
+  const title = isOutsourcing ? '法令遵循自行評估 ' : '內部控制制度自行查核';
   const buttonText = isOutsourcing ? '立即填寫' : '立即發送';
   const summary = YEAR_SUMMARY[year] || YEAR_SUMMARY[2026];
   const highRisk = isOutsourcing ? summary.outsourcingHigh : summary.supplierHigh;
@@ -606,7 +606,7 @@ function ActionButtons({ item, onNavigate, approvedRecords, onApprove, activeTab
   // Tab 2: 資訊供應商風險評估
   if (activeTab === 'supplier') {
     if (item.actionType === 'viewOnly') {
-      // 等待廠商回覆 → 查看（带参数固定显示等待状态）
+      // 等待單位回覆 → 查看（带参数固定显示等待状态）
       return (
         <div className="flex items-center justify-end w-full">
           <button className="bg-transparent border-none cursor-pointer py-[8px]" onClick={() => navigate('/risk-assessment-send?mode=view&status=waiting')}>
@@ -616,7 +616,7 @@ function ActionButtons({ item, onNavigate, approvedRecords, onApprove, activeTab
       );
     }
     if (item.actionType === 'approved') {
-      // 廠商已回覆
+      // 單位已回覆
       if (isApproved) {
         // 已批准 → 只显示查看
         return (
@@ -747,8 +747,8 @@ export default function RiskAssessmentPage({ onNavigate }: RiskAssessmentPagePro
 
   const supplierFilters = [
     { key: 'all', label: '全部', count: supplierData.length },
-    { key: 'waiting', label: '等待廠商回覆', count: supplierData.filter(d => d.statusType === 'waiting').length },
-    { key: 'replied', label: '廠商已回覆', count: supplierData.filter(d => d.statusType === 'replied' && !approvedRecords.has(d.projectName)).length },
+    { key: 'waiting', label: '等待單位回覆', count: supplierData.filter(d => d.statusType === 'waiting').length },
+    { key: 'replied', label: '單位已回覆', count: supplierData.filter(d => d.statusType === 'replied' && !approvedRecords.has(d.projectName)).length },
     { key: 'approved', label: '已批准', count: supplierData.filter(d => d.statusType === 'replied' && approvedRecords.has(d.projectName)).length },
     { key: 'overdue', label: '已逾期', count: supplierData.filter(d => d.statusType === 'overdue').length },
   ];
@@ -770,7 +770,7 @@ export default function RiskAssessmentPage({ onNavigate }: RiskAssessmentPagePro
         (d.statusType === 'sent' || d.statusType === 'replied') && approvedRecords.has(d.projectName)
       );
     } else if (activeFilter === 'sent' || activeFilter === 'replied') {
-      // 已送出等待批准/廠商已回覆：statusType匹配且不在approvedRecords中
+      // 已送出等待批准/單位已回覆：statusType匹配且不在approvedRecords中
       filteredData = filteredData.filter(d => d.statusType === activeFilter && !approvedRecords.has(d.projectName));
     } else {
       filteredData = filteredData.filter(d => d.statusType === activeFilter);
@@ -846,7 +846,7 @@ export default function RiskAssessmentPage({ onNavigate }: RiskAssessmentPagePro
                     ? "font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24] tracking-[0.6px]"
                     : "font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[#747480]"
                     }`} style={{ fontVariationSettings: activeTab === 'outsourcing' ? "'wght' 700" : "'wght' 400" }}>
-                    {`法令遵循定期評估作業 `}
+                    {`法令遵循自行評估 `}
                   </p>
                   <p className={`text-center whitespace-nowrap ${activeTab === 'outsourcing'
                     ? "font-['EYInterstate:Bold',sans-serif] text-[#1a1a24] text-[24px]"
@@ -922,9 +922,9 @@ export default function RiskAssessmentPage({ onNavigate }: RiskAssessmentPagePro
               {/* Table */}
               <div className="px-[16px] pb-[16px] w-full">
                 <div className="flex items-start w-full">
-                  {/* Column: 業務流程 */}
+                  {/* Column: 業務項目 */}
                   <div className="flex flex-col items-start w-[195px] shrink-0">
-                    <TableHeaderCell text="業務流程" />
+                    <TableHeaderCell text="業務項目" />
                     {filteredData.map((item, i) => (
                       <TableDataCell key={i} text={item.projectName} />
                     ))}

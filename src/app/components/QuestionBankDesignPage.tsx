@@ -7,6 +7,7 @@ import { useAppNavigate, useAppContext } from '../context/AppContext';
 import {
   QuestionTemplate,
   TEMPLATE_OPTIONS,
+  getAnswerOptions,
   getQuestionBankByTemplate,
   getTemplateLabel,
   QuestionBankCategory,
@@ -47,10 +48,10 @@ function GroupCheckbox({
   );
 }
 
-function YesNoNA() {
+function AnswerChoices({ options }: { options: string[] }) {
   return (
-    <div className="flex gap-[16px] items-center pointer-events-none select-none" aria-hidden="true">
-      {['是', '否', 'N/A'].map((label) => (
+    <div className="flex gap-[16px] items-center flex-wrap pointer-events-none select-none" aria-hidden="true">
+      {options.map((label) => (
         <div key={label} className="flex gap-[6px] items-center">
           <div className="size-[20px] rounded-full border border-[#c4c4cd] bg-white" />
           <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[#2e2e38] text-[16px]">{label}</p>
@@ -92,7 +93,7 @@ function QuestionPreview({
       <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[16px] leading-[23px] text-[#1a1a24]" style={{ fontWeight: 700 }}>
         {no}. {questionLabel}：{row.question}
       </p>
-      <YesNoNA />
+      <AnswerChoices options={getAnswerOptions(template, row.id)} />
       <div className="bg-[#f6f6fa] relative rounded-[8px] h-[72px] w-full">
         <p className="p-[12px] font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] text-[#99A1AF]">
           {template === 'compliance' ? '佐證文件或說明' : '佐證文件及說明'}
@@ -163,7 +164,7 @@ export default function QuestionBankDesignPage() {
     });
   };
 
-  const formTitle = template === 'compliance' ? '法令遵循定期評估表' : '內部控制制度自行查核表';
+  const formTitle = template === 'compliance' ? '法令遵循自行評估表' : '內部控制制度自行查核表';
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'bg-[#1a1a24]' : 'bg-[#2e2e38]'}`}>
@@ -290,8 +291,7 @@ export default function QuestionBankDesignPage() {
                   </p>
                 </div>
               </div>
-              <div className="bg-white flex flex-col gap-[24px] items-start p-[24px] relative rounded-bl-[8px] rounded-br-[8px] w-full max-h-[calc(100vh-360px)] overflow-y-auto">
-                <div aria-hidden="true" className="absolute border-2 border-[#e5e7eb] border-solid inset-0 pointer-events-none rounded-bl-[8px] rounded-br-[8px]" />
+              <div className="bg-white flex flex-col gap-[24px] items-start p-[24px] rounded-bl-[8px] rounded-br-[8px] w-full max-h-[calc(100vh-360px)] overflow-y-auto">
                 {previewGroups.length === 0 ? (
                   <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] text-[#747480]">
                     請從左側題庫勾選題目

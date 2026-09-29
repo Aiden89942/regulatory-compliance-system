@@ -108,7 +108,7 @@ function SupplierRiskPieChart({ isDarkMode }: { isDarkMode: boolean }) {
     <div className="content-stretch flex flex-col gap-[16px] items-center relative w-full">
       <div className="content-stretch flex items-center justify-between relative shrink-0 w-full">
         <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[1.3] relative text-[22px] break-words ${textColor}`} style={{ fontVariationSettings: "'wght' 400" }}>
-          本月法令遵循定期評估問卷填答情形
+          本月法令遵循自行評估問卷填答情形
         </p>
       </div>
       

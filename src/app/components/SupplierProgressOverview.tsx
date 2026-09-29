@@ -1,8 +1,8 @@
 import { useState } from "react";
 import clsx from "clsx";
 
-type TabType = "已派發" | "填答中" | "已完成";
-type SubTabType = "法令遵循定期評估作業" | "內部控制制度自行查核" | null;
+type TabType = "未派發" | "填答中" | "已逾期" | "已完成";
+type SubTabType = "法令遵循自行評估" | "內部控制制度自行查核" | null;
 
 type TabItemProps = {
   label: string;
@@ -83,14 +83,14 @@ function TabItem({
 const VENDOR_RISK_TRACKING_DATA = [
   { projectName: '內部控制制度自行查核', supplier: 'A單位', risk: 'medium' as const, status: '問卷已送出', statusType: 'waiting', deadline: '2026.04.15', actionType: 'viewOnly' },
   { projectName: '內部控制制度自行查核', supplier: 'B單位', risk: 'medium' as const, status: '問卷已送出', statusType: 'waiting', deadline: '2026.04.30', actionType: 'viewOnly' },
-  { projectName: '法令遵循定期評估作業', supplier: 'C單位', risk: 'low' as const, status: '問卷已送出', statusType: 'replied', deadline: '2026.03.31', actionType: 'approved' },
-  { projectName: '法令遵循定期評估作業', supplier: 'A單位', risk: 'low' as const, status: '問卷已送出', statusType: 'replied', deadline: '2026.04.20', actionType: 'approved' },
+  { projectName: '法令遵循自行評估', supplier: 'C單位', risk: 'low' as const, status: '問卷已送出', statusType: 'replied', deadline: '2026.03.31', actionType: 'approved' },
+  { projectName: '法令遵循自行評估', supplier: 'A單位', risk: 'low' as const, status: '問卷已送出', statusType: 'replied', deadline: '2026.04.20', actionType: 'approved' },
   { projectName: '內部控制制度自行查核', supplier: 'B單位', risk: 'high' as const, status: '問卷已送出', statusType: 'replied', deadline: '2026.03.15', actionType: 'approved' },
-  { projectName: '法令遵循定期評估作業', supplier: 'C單位', risk: 'high' as const, status: '已逾期', statusType: 'overdue', deadline: '2026.02.20', actionType: 'notifyVendor' },
-  { projectName: '法令遵循定期評估作業', supplier: 'A單位', risk: 'high' as const, status: '已逾期', statusType: 'overdue', deadline: '2026.03.10', actionType: 'notifyVendor' },
+  { projectName: '法令遵循自行評估', supplier: 'C單位', risk: 'high' as const, status: '已逾期', statusType: 'overdue', deadline: '2026.02.20', actionType: 'notifyVendor' },
+  { projectName: '法令遵循自行評估', supplier: 'A單位', risk: 'high' as const, status: '已逾期', statusType: 'overdue', deadline: '2026.03.10', actionType: 'notifyVendor' },
   { projectName: '內部控制制度自行查核', supplier: 'B單位', risk: 'high' as const, status: '已逾期', statusType: 'overdue', deadline: '2026.02.28', actionType: 'notifyVendor' },
-  { projectName: '法令遵循定期評估作業', supplier: 'C單位', risk: 'high' as const, status: '已逾期', statusType: 'overdue', deadline: '2026.03.05', actionType: 'notifyVendor' },
-  { projectName: '法令遵循定期評估作業', supplier: 'A單位', risk: 'high' as const, status: '已逾期', statusType: 'overdue', deadline: '2026.02.18', actionType: 'notifyVendor' },
+  { projectName: '法令遵循自行評估', supplier: 'C單位', risk: 'high' as const, status: '已逾期', statusType: 'overdue', deadline: '2026.03.05', actionType: 'notifyVendor' },
+  { projectName: '法令遵循自行評估', supplier: 'A單位', risk: 'high' as const, status: '已逾期', statusType: 'overdue', deadline: '2026.02.18', actionType: 'notifyVendor' },
 ];
 
 // Shared table header cell
@@ -130,7 +130,7 @@ function 內部控制制度自行查核Content({ onSubTabChange }: { onSubTabCha
               onClick={() => onSubTabChange(null)}
             >
               <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[23px] relative shrink-0 text-[#1a1a24] text-[16px] text-center tracking-[0.48px]" style={{ fontVariationSettings: "'wght' 400" }}>
-                法令遵循定期評估作業 (8)
+                法令遵循自行評估 (8)
               </p>
             </div>
             <div className="bg-[#ffe600] content-stretch flex items-center justify-center px-[16px] py-[8px] relative rounded-[33554400px] shrink-0 cursor-pointer hover:bg-[#ffd700] transition-colors">
@@ -405,6 +405,19 @@ function StatusBadgeHome({ status, statusType }: { status: string; statusType: s
       </div>
     );
   }
+  if (statusType === 'pendingDispatch') {
+    return (
+      <div className="flex gap-[4px] items-center">
+        <div className="relative shrink-0 size-[14px]">
+          <svg className="absolute block size-full" fill="none" viewBox="0 0 14 14"><circle cx="7" cy="7" fill="#8F8100" r="7" /></svg>
+          <svg className="absolute block size-full" fill="none" viewBox="0 0 14 14">
+            <path d="M7 4V7.2L9 8.4" stroke="white" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.12" />
+          </svg>
+        </div>
+        <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[23px] text-[#1a1a24] text-[16px] tracking-[0.48px] whitespace-nowrap">{status}</p>
+      </div>
+    );
+  }
   if (statusType === 'replied' || statusType === 'sent') {
     return (
       <div className="flex gap-[4px] items-center">
@@ -445,23 +458,39 @@ function ActionButtonsHome({ actionType }: { actionType: string }) {
 
 // Data for 開案前 - 資訊服務委外風險評估
 const OUTSOURCING_HOME_DATA = [
-  { projectName: '法令遵循定期評估作業', supplier: 'A單位', risk: 'medium' as const, status: '問卷未送出', statusType: 'draft', deadline: '2026.04.15', actionType: 'continueFill' },
-  { projectName: '內部控制制度自行查核', supplier: 'B單位', risk: 'medium' as const, status: '問卷未送出', statusType: 'draft', deadline: '2026.04.30', actionType: 'continueFill' },
-  { projectName: '法令遵循定期評估作業', supplier: 'C單位', risk: 'low' as const, status: '問卷已送出', statusType: 'sent', deadline: '2026.03.31', actionType: 'approved' },
-  { projectName: '法令遵循定期評估作業', supplier: 'A單位', risk: 'low' as const, status: '問卷已送出', statusType: 'sent', deadline: '2026.05.15', actionType: 'approved' },
+  { projectName: '法令遵循自行評估', supplier: 'A單位', risk: 'medium' as const, status: '尚未派發', statusType: 'pendingDispatch', deadline: '2026.04.15', actionType: 'viewOnly' },
+  { projectName: '內部控制制度自行查核', supplier: 'B單位', risk: 'medium' as const, status: '尚未派發', statusType: 'pendingDispatch', deadline: '2026.04.30', actionType: 'viewOnly' },
+  { projectName: '法令遵循自行評估', supplier: 'C單位', risk: 'low' as const, status: '尚未派發', statusType: 'pendingDispatch', deadline: '2026.03.31', actionType: 'viewOnly' },
+  { projectName: '法令遵循自行評估', supplier: 'A單位', risk: 'low' as const, status: '尚未派發', statusType: 'pendingDispatch', deadline: '2026.05.15', actionType: 'viewOnly' },
   { projectName: '內部控制制度自行查核', supplier: 'B單位', risk: 'high' as const, status: '已逾期', statusType: 'overdue', deadline: '2026.05.01', actionType: 'refill' },
-  { projectName: '法令遵循定期評估作業', supplier: 'C單位', risk: 'high' as const, status: '已逾期', statusType: 'overdue', deadline: '2026.02.28', actionType: 'refill' },
-  { projectName: '法令遵循定期評估作業', supplier: 'A單位', risk: 'high' as const, status: '已逾期', statusType: 'overdue', deadline: '2026.03.01', actionType: 'refill' },
+  { projectName: '法令遵循自行評估', supplier: 'C單位', risk: 'high' as const, status: '已逾期', statusType: 'overdue', deadline: '2026.02.28', actionType: 'refill' },
+  { projectName: '法令遵循自行評估', supplier: 'A單位', risk: 'high' as const, status: '已逾期', statusType: 'overdue', deadline: '2026.03.01', actionType: 'refill' },
   { projectName: '內部控制制度自行查核', supplier: 'B單位', risk: 'high' as const, status: '已逾期', statusType: 'overdue', deadline: '2026.02.15', actionType: 'refill' },
 ];
 
-// 開案前內容組件 - 6 column table matching RiskAssessmentPage
-function 開案前Content({ isDarkMode = false, onSubTabChange }: { isDarkMode?: boolean; onSubTabChange: (subTab: SubTabType) => void }) {
+const OVERDUE_HOME_DATA = [...OUTSOURCING_HOME_DATA, ...VENDOR_RISK_TRACKING_DATA].filter(
+  (item) => item.statusType === "overdue",
+);
+const DISPATCHED_HOME_DATA = OUTSOURCING_HOME_DATA.filter((item) => item.statusType !== "overdue");
+const DISPATCHED_COMPLIANCE_DATA = DISPATCHED_HOME_DATA.filter(
+  (item) => item.projectName === "法令遵循自行評估",
+);
+const DISPATCHED_CONTROL_DATA = DISPATCHED_HOME_DATA.filter(
+  (item) => item.projectName === "內部控制制度自行查核",
+);
 
-  const headerBg = isDarkMode ? 'bg-[#747480]' : 'bg-[#f6f6fa]';
-  const cellBg = isDarkMode ? 'bg-[rgba(255,255,255,0.12)]' : 'bg-white';
-  const textColor = isDarkMode ? 'text-[#ffffff]' : 'text-[#1a1a24]';
-  const cellTextColor = isDarkMode ? 'text-[#ffffff]' : 'text-[#222]';
+// 開案前內容組件 - 6 column table matching RiskAssessmentPage
+function 開案前Content({ isDarkMode = false }: { isDarkMode?: boolean }) {
+  const [activeType, setActiveType] = useState<SubTabType>(null);
+  const rows = activeType === "法令遵循自行評估"
+    ? DISPATCHED_COMPLIANCE_DATA
+    : activeType === "內部控制制度自行查核"
+      ? DISPATCHED_CONTROL_DATA
+      : DISPATCHED_HOME_DATA;
+
+  const selectType = (type: Exclude<SubTabType, null>) => {
+    setActiveType((current) => (current === type ? null : type));
+  };
 
   return (
     <>
@@ -469,17 +498,42 @@ function 開案前Content({ isDarkMode = false, onSubTabChange }: { isDarkMode?:
       <div className="relative shrink-0 w-full">
         <div className="flex flex-row items-center size-full">
           <div className="content-stretch flex gap-[12px] items-center px-[24px] py-[16px] relative w-full">
-            <div className="bg-[#ffe600] content-stretch flex items-center justify-center px-[16px] py-[8px] relative rounded-[3.35544e+07px] shrink-0 cursor-pointer hover:bg-[#ffd700] transition-colors">
-              <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] leading-[23px] relative shrink-0 text-[#1a1a24] text-[16px] text-center text-nowrap tracking-[0.48px]" style={{ fontVariationSettings: "'wght' 700" }}>
-                法令遵循定期評估作業 (8)
+            <div
+              className={clsx(
+                "content-stretch flex items-center justify-center px-[16px] py-[8px] relative rounded-[3.35544e+07px] shrink-0 cursor-pointer transition-colors",
+                activeType === "法令遵循自行評估" ? "bg-[#ffe600] hover:bg-[#ffd700]" : isDarkMode ? "bg-[rgba(255,255,255,0.12)] hover:bg-[rgba(255,255,255,0.18)]" : "bg-[#ececf3] hover:bg-[#dcdce8]",
+              )}
+              onClick={() => selectType("法令遵循自行評估")}
+            >
+              <p
+                className={clsx(
+                  "leading-[23px] relative shrink-0 text-[16px] text-center text-nowrap tracking-[0.48px]",
+                  activeType === "法令遵循自行評估"
+                    ? "font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24]"
+                    : clsx("font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif]", isDarkMode ? "text-[#ffffff]" : "text-[#1a1a24]"),
+                )}
+                style={{ fontVariationSettings: activeType === "法令遵循自行評估" ? "'wght' 700" : "'wght' 400" }}
+              >
+                {`法令遵循自行評估 (${DISPATCHED_COMPLIANCE_DATA.length})`}
               </p>
             </div>
-            <div 
-              className={clsx("content-stretch flex gap-[4px] items-center justify-center px-[16px] py-[8px] relative rounded-[3.35544e+07px] shrink-0 cursor-pointer transition-colors", isDarkMode ? "bg-[rgba(255,255,255,0.12)] hover:bg-[rgba(255,255,255,0.18)]" : "bg-[#ececf3] hover:bg-[#dcdce8]")}
-              onClick={() => onSubTabChange("內部控制制度自行查核")}
+            <div
+              className={clsx(
+                "content-stretch flex items-center justify-center px-[16px] py-[8px] relative rounded-[3.35544e+07px] shrink-0 cursor-pointer transition-colors",
+                activeType === "內部控制制度自行查核" ? "bg-[#ffe600] hover:bg-[#ffd700]" : isDarkMode ? "bg-[rgba(255,255,255,0.12)] hover:bg-[rgba(255,255,255,0.18)]" : "bg-[#ececf3] hover:bg-[#dcdce8]",
+              )}
+              onClick={() => selectType("內部控制制度自行查核")}
             >
-              <p className={clsx("font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[23px] relative shrink-0 text-[16px] text-center text-nowrap tracking-[0.48px]", isDarkMode ? "text-[#ffffff]" : "text-[#1a1a24]")} style={{ fontVariationSettings: "'wght' 400" }}>
-                內部控制制度自行查核 (3)
+              <p
+                className={clsx(
+                  "leading-[23px] relative shrink-0 text-[16px] text-center text-nowrap tracking-[0.48px]",
+                  activeType === "內部控制制度自行查核"
+                    ? "font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24]"
+                    : clsx("font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif]", isDarkMode ? "text-[#ffffff]" : "text-[#1a1a24]"),
+                )}
+                style={{ fontVariationSettings: activeType === "內部控制制度自行查核" ? "'wght' 700" : "'wght' 400" }}
+              >
+                {`內部控制制度自行查核 (${DISPATCHED_CONTROL_DATA.length})`}
               </p>
             </div>
           </div>
@@ -492,21 +546,21 @@ function 開案前Content({ isDarkMode = false, onSubTabChange }: { isDarkMode?:
           {/* 專案名稱 */}
           <div className="flex flex-col items-start w-[240px] shrink-0">
             <HomeTableHeaderCell text="問卷類型" />
-            {OUTSOURCING_HOME_DATA.map((item, i) => (
+            {rows.map((item, i) => (
               <HomeTableDataCell key={i} text={item.projectName} />
             ))}
           </div>
           {/* 申請供應商 */}
           <div className="flex flex-col items-start flex-1 min-w-0">
             <HomeTableHeaderCell text="填答部門" />
-            {OUTSOURCING_HOME_DATA.map((item, i) => (
+            {rows.map((item, i) => (
               <HomeTableDataCell key={i} text={item.supplier} />
             ))}
           </div>
           {/* 風險 */}
           <div className="flex flex-col items-start w-[150px] shrink-0">
             <HomeTableHeaderCell text="風險" />
-            {OUTSOURCING_HOME_DATA.map((item, i) => (
+            {rows.map((item, i) => (
               <div key={i} className="bg-white h-[63px] w-full relative">
                 <div className="absolute border-[#d2dae6] border-b border-solid inset-0 pointer-events-none" />
                 <div className="flex items-center px-[15px] py-[20px] h-full">
@@ -518,7 +572,7 @@ function 開案前Content({ isDarkMode = false, onSubTabChange }: { isDarkMode?:
           {/* 狀態 */}
           <div className="flex flex-col items-start w-[177px] shrink-0">
             <HomeTableHeaderCell text="狀態" />
-            {OUTSOURCING_HOME_DATA.map((item, i) => (
+            {rows.map((item, i) => (
               <div key={i} className="bg-white h-[63px] w-full relative">
                 <div className="absolute border-[#d2dae6] border-b border-solid inset-0 pointer-events-none" />
                 <div className="flex items-center px-[15px] py-[20px] h-full">
@@ -530,7 +584,7 @@ function 開案前Content({ isDarkMode = false, onSubTabChange }: { isDarkMode?:
           {/* 期限 */}
           <div className="flex flex-col items-center w-[147px] shrink-0">
             <HomeTableHeaderCell text="期限" />
-            {OUTSOURCING_HOME_DATA.map((item, i) => (
+            {rows.map((item, i) => (
               <HomeTableDataCell key={i} text={item.deadline} />
             ))}
           </div>
@@ -542,7 +596,7 @@ function 開案前Content({ isDarkMode = false, onSubTabChange }: { isDarkMode?:
                 <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] leading-[23px] text-[#1a1a24] text-[16px] tracking-[0.48px] whitespace-nowrap" style={{ fontVariationSettings: "'wght' 600" }}>操作</p>
               </div>
             </div>
-            {OUTSOURCING_HOME_DATA.map((item, i) => (
+            {rows.map((item, i) => (
               <div key={i} className="bg-white h-[63px] w-full relative">
                 <div className="absolute border-[#d2dae6] border-b border-solid inset-0 pointer-events-none" />
                 <div className="flex items-center justify-center px-[15px] py-[20px] h-full">
@@ -1572,26 +1626,145 @@ function 已結案Content({ isDarkMode = false }: { isDarkMode?: boolean }) {
   );
 }
 
+function 已逾期Content({ isDarkMode = false }: { isDarkMode?: boolean }) {
+  const [activeType, setActiveType] = useState<SubTabType>(null);
+  const complianceRows = OVERDUE_HOME_DATA.filter((item) => item.projectName === "法令遵循自行評估");
+  const controlRows = OVERDUE_HOME_DATA.filter((item) => item.projectName === "內部控制制度自行查核");
+  const rows = activeType === "法令遵循自行評估"
+    ? complianceRows
+    : activeType === "內部控制制度自行查核"
+      ? controlRows
+      : OVERDUE_HOME_DATA;
+  const selectType = (type: Exclude<SubTabType, null>) => {
+    setActiveType((current) => (current === type ? null : type));
+  };
+
+  return (
+    <>
+      <div className="relative shrink-0 w-full">
+        <div className="flex flex-row items-center size-full">
+          <div className="content-stretch flex gap-[12px] items-center px-[24px] py-[16px] relative w-full">
+            <div
+              className={clsx(
+                "content-stretch flex items-center justify-center px-[16px] py-[8px] relative rounded-[3.35544e+07px] shrink-0 cursor-pointer transition-colors",
+                activeType === "法令遵循自行評估" ? "bg-[#ffe600] hover:bg-[#ffd700]" : isDarkMode ? "bg-[rgba(255,255,255,0.12)] hover:bg-[rgba(255,255,255,0.18)]" : "bg-[#ececf3] hover:bg-[#dcdce8]",
+              )}
+              onClick={() => selectType("法令遵循自行評估")}
+            >
+              <p
+                className={clsx(
+                  "leading-[23px] relative shrink-0 text-[16px] text-center text-nowrap tracking-[0.48px]",
+                  activeType === "法令遵循自行評估"
+                    ? "font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24]"
+                    : clsx("font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif]", isDarkMode ? "text-[#ffffff]" : "text-[#1a1a24]"),
+                )}
+                style={{ fontVariationSettings: activeType === "法令遵循自行評估" ? "'wght' 700" : "'wght' 400" }}
+              >
+                {`法令遵循自行評估 (${complianceRows.length})`}
+              </p>
+            </div>
+            <div
+              className={clsx(
+                "content-stretch flex items-center justify-center px-[16px] py-[8px] relative rounded-[3.35544e+07px] shrink-0 cursor-pointer transition-colors",
+                activeType === "內部控制制度自行查核" ? "bg-[#ffe600] hover:bg-[#ffd700]" : isDarkMode ? "bg-[rgba(255,255,255,0.12)] hover:bg-[rgba(255,255,255,0.18)]" : "bg-[#ececf3] hover:bg-[#dcdce8]",
+              )}
+              onClick={() => selectType("內部控制制度自行查核")}
+            >
+              <p
+                className={clsx(
+                  "leading-[23px] relative shrink-0 text-[16px] text-center text-nowrap tracking-[0.48px]",
+                  activeType === "內部控制制度自行查核"
+                    ? "font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24]"
+                    : clsx("font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif]", isDarkMode ? "text-[#ffffff]" : "text-[#1a1a24]"),
+                )}
+                style={{ fontVariationSettings: activeType === "內部控制制度自行查核" ? "'wght' 700" : "'wght' 400" }}
+              >
+                {`內部控制制度自行查核 (${controlRows.length})`}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="px-[16px] pb-[16px] w-full">
+        <div className="flex items-start w-full">
+          <div className="flex flex-col items-start w-[240px] shrink-0">
+            <HomeTableHeaderCell text="問卷類型" />
+            {rows.map((item, i) => (
+              <HomeTableDataCell key={i} text={item.projectName} />
+            ))}
+          </div>
+          <div className="flex flex-col items-start flex-1 min-w-0">
+            <HomeTableHeaderCell text="填答部門" />
+            {rows.map((item, i) => (
+              <HomeTableDataCell key={i} text={item.supplier} />
+            ))}
+          </div>
+          <div className="flex flex-col items-start w-[150px] shrink-0">
+            <HomeTableHeaderCell text="風險" />
+            {rows.map((item, i) => (
+              <div key={i} className="bg-white h-[63px] w-full relative">
+                <div className="absolute border-[#d2dae6] border-b border-solid inset-0 pointer-events-none" />
+                <div className="flex items-center px-[15px] py-[20px] h-full">
+                  <RiskBadgeHome risk={item.risk} />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-col items-start w-[177px] shrink-0">
+            <HomeTableHeaderCell text="狀態" />
+            {rows.map((item, i) => (
+              <div key={i} className="bg-white h-[63px] w-full relative">
+                <div className="absolute border-[#d2dae6] border-b border-solid inset-0 pointer-events-none" />
+                <div className="flex items-center px-[15px] py-[20px] h-full">
+                  <StatusBadgeHome status={item.status} statusType={item.statusType} />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-col items-center w-[147px] shrink-0">
+            <HomeTableHeaderCell text="期限" />
+            {rows.map((item, i) => (
+              <HomeTableDataCell key={i} text={item.deadline} />
+            ))}
+          </div>
+          <div className="flex flex-col items-start shrink-0">
+            <div className="bg-[#f6f6fa] h-[48px] w-full relative">
+              <div className="absolute border-[#d2dae6] border-b border-solid inset-0 pointer-events-none" />
+              <div className="flex items-center justify-center p-[15px] h-full">
+                <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] leading-[23px] text-[#1a1a24] text-[16px] tracking-[0.48px] whitespace-nowrap" style={{ fontVariationSettings: "'wght' 600" }}>操作</p>
+              </div>
+            </div>
+            {rows.map((item, i) => (
+              <div key={i} className="bg-white h-[63px] w-full relative">
+                <div className="absolute border-[#d2dae6] border-b border-solid inset-0 pointer-events-none" />
+                <div className="flex items-center justify-center px-[15px] py-[20px] h-full">
+                  <ActionButtonsHome actionType={item.actionType} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 export default function SupplierProgressOverview({
   isDarkMode = false,
 }: {
   isDarkMode?: boolean;
 }) {
-  const [activeTab, setActiveTab] = useState<TabType>("已派發");
-  const [activeSubTab, setActiveSubTab] = useState<SubTabType>(null);
+  const [activeTab, setActiveTab] = useState<TabType>("未派發");
 
   const renderContent = () => {
-    // 如果在「已派發」tab 且選擇了「內部控制制度自行查核」子tab
-    if (activeTab === "已派發" && activeSubTab === "內部控制制度自行查核") {
-      return <內部控制制度自行查核Content onSubTabChange={setActiveSubTab} />;
-    }
-
-    // 否則根據主 tab 顯示對應內容
     switch (activeTab) {
-      case "已派發":
-        return <開案前Content isDarkMode={isDarkMode} onSubTabChange={setActiveSubTab} />;
+      case "未派發":
+        return <開案前Content isDarkMode={isDarkMode} />;
       case "填答中":
         return <委託中ContentWrapper isDarkMode={isDarkMode} />;
+      case "已逾期":
+        return <已逾期Content isDarkMode={isDarkMode} />;
       case "已完成":
         return <已結案Content isDarkMode={isDarkMode} />;
       default:
@@ -1601,7 +1774,6 @@ export default function SupplierProgressOverview({
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
-    setActiveSubTab(null); // 切換主 tab 時重置子 tab
   };
 
   const containerBg = isDarkMode ? 'bg-[rgba(255,255,255,0.12)]' : 'bg-white';
@@ -1612,10 +1784,10 @@ export default function SupplierProgressOverview({
       {/* Tab 選項卡 */}
       <div className={`${tabBg} content-stretch flex items-start overflow-clip relative shrink-0 w-full transition-colors duration-300`}>
         <TabItem
-          label="已派發"
-          count={7}
-          isActive={activeTab === "已派發"}
-          onClick={() => handleTabChange("已派發")}
+          label="未派發"
+          count={DISPATCHED_HOME_DATA.length}
+          isActive={activeTab === "未派發"}
+          onClick={() => handleTabChange("未派發")}
           isDarkMode={isDarkMode}
         />
         <TabItem
@@ -1630,6 +1802,13 @@ export default function SupplierProgressOverview({
           count={3}
           isActive={activeTab === "已完成"}
           onClick={() => handleTabChange("已完成")}
+          isDarkMode={isDarkMode}
+        />
+        <TabItem
+          label="已逾期"
+          count={OVERDUE_HOME_DATA.length}
+          isActive={activeTab === "已逾期"}
+          onClick={() => handleTabChange("已逾期")}
           isDarkMode={isDarkMode}
         />
       </div>

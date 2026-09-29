@@ -16,7 +16,7 @@ function PflLogo({ onClick }: { onClick?: () => void }) {
       data-name="PFL_logo2022 2"
       onClick={onClick}
     >
-      <p className="font-['EYInterstate:Bold',sans-serif] leading-[normal] not-italic relative shrink-0 text-[32px] text-nowrap text-white">法令遵循管理系統</p>
+      <p className="font-['EYInterstate:Bold',sans-serif] leading-[normal] not-italic relative shrink-0 text-[32px] text-nowrap text-white">自行評估與自行查核系統</p>
     </div>
   );
 }
@@ -197,7 +197,7 @@ function NotificationBell({ onNavigate }: { onNavigate?: (page: string, supplier
     {
       id: 'n2',
       title: '自評通知',
-      message: '法令遵循定期評估自評表已發布，請於截止日前完成填寫。',
+      message: '法令遵循自行評估自評表已發布，請於截止日前完成填寫。',
       time: '今天 10:15',
       unread: true,
       action: () => onNavigate?.('self-assessment', undefined, { template: 'compliance' }),
@@ -351,16 +351,22 @@ export default function Header({ onNavigate: onNavigateProp, currentPage: curren
                   isImplemented={true}
                 />
                 <MenuButton 
-                  text="法令遵循定期評估作業" 
+                  text="評估作業" 
                   isActive={currentPage === 'risk-assessment'} 
                   onClick={() => onNavigate?.('risk-assessment')} 
                   isImplemented={true}
                 />
-                <MenuButton 
+                {/* <MenuButton 
                   text="內部控制制度自行查核" 
                   isActive={isSupplierManagementActive} 
                   onClick={() => onNavigate?.('supplier-management')} 
                   isImplemented={false}
+                /> */}
+                <MenuButton 
+                  text="缺失追蹤" 
+                  isActive={currentPage === 'deficiency-tracking'} 
+                  onClick={() => onNavigate?.('deficiency-tracking')} 
+                  isImplemented={true}
                 />
                 <MenuButton 
                   text="管理報表" 

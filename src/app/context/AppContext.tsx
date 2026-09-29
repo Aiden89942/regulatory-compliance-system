@@ -38,7 +38,9 @@ export function pageToPath(page: string, supplier?: string, query?: Record<strin
     'question-bank': '/question-bank',
     'question-bank-edit': '/question-bank-edit',
     'question-bank-design': '/question-bank-design',
+    'question-bank-review': '/question-bank-review',
     'self-assessment': '/self-assessment',
+    'deficiency-tracking': '/deficiency-tracking',
     'management-report': '/management-report',
   };
 
@@ -89,7 +91,9 @@ export function pathToPage(pathname: string): string {
     '/question-bank': 'question-bank',
     '/question-bank-edit': 'question-bank-edit',
     '/question-bank-design': 'question-bank-design',
+    '/question-bank-review': 'question-bank-review',
     '/self-assessment': 'self-assessment',
+    '/deficiency-tracking': 'deficiency-tracking',
     '/management-report': 'management-report',
   };
   return map[pathname] || 'home';

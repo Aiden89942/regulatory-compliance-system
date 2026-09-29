@@ -23,7 +23,7 @@ export interface QuestionBankCategory {
 }
 
 export const TEMPLATE_OPTIONS: { value: QuestionTemplate; label: string }[] = [
-  { value: 'compliance', label: '法令遵循定期評估作業' },
+  { value: 'compliance', label: '法令遵循自行評估' },
   { value: 'internal-control', label: '內部控制制度自行查核' },
 ];
 
@@ -247,6 +247,22 @@ export function findQuestionRow(
 
 export function getTemplateLabel(template: QuestionTemplate): string {
   return TEMPLATE_OPTIONS.find((o) => o.value === template)?.label || '';
+}
+
+export const COMPLIANCE_ANSWER_OPTIONS = ['符合', '未符合', '不適用'];
+export const DEFAULT_CONTROL_ANSWER_OPTIONS = ['是', '否', 'N/A'];
+
+const controlAnswerOptions = new Map<string, string[]>();
+
+export function getAnswerOptions(template: QuestionTemplate, rowId: string): string[] {
+  if (template === 'compliance') return COMPLIANCE_ANSWER_OPTIONS;
+  const saved = controlAnswerOptions.get(rowId);
+  return saved ? [...saved] : [...DEFAULT_CONTROL_ANSWER_OPTIONS];
+}
+
+export function setControlAnswerOptions(rowId: string, options: string[]) {
+  const next = options.map((option) => option.trim()).filter(Boolean);
+  controlAnswerOptions.set(rowId, next.length > 0 ? next : [...DEFAULT_CONTROL_ANSWER_OPTIONS]);
 }
 
 /** 自評問卷題目（由題庫彙整） */

@@ -262,19 +262,6 @@ export default function QuestionBankDesignPage() {
 
               <div className="grid grid-cols-2 gap-[12px] w-full">
                 <label className="flex flex-col gap-[6px] min-w-0">
-                  <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[13px] ${isDarkMode ? 'text-[#99A1AF]' : 'text-[#747480]'}`}>自評單位</p>
-                  <select
-                    value={selfAssessmentFilter}
-                    onChange={(event) => setSelfAssessmentFilter(event.target.value)}
-                    className={`h-[40px] w-full rounded-[8px] px-[8px] border outline-none font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] ${isDarkMode ? 'bg-[#1a1a24] border-[#474756] text-white' : 'bg-white border-[#ececf3] text-[#1a1a24]'}`}
-                  >
-                    <option value="">全部</option>
-                    {selfAssessmentOptions.map((option) => (
-                      <option key={option} value={option}>{option}</option>
-                    ))}
-                  </select>
-                </label>
-                <label className="flex flex-col gap-[6px] min-w-0">
                   <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[13px] ${isDarkMode ? 'text-[#99A1AF]' : 'text-[#747480]'}`}>負責單位</p>
                   <select
                     value={responsibleFilter}
@@ -283,6 +270,19 @@ export default function QuestionBankDesignPage() {
                   >
                     <option value="">全部</option>
                     {responsibleOptions.map((option) => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="flex flex-col gap-[6px] min-w-0">
+                  <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[13px] ${isDarkMode ? 'text-[#99A1AF]' : 'text-[#747480]'}`}>自評單位</p>
+                  <select
+                    value={selfAssessmentFilter}
+                    onChange={(event) => setSelfAssessmentFilter(event.target.value)}
+                    className={`h-[40px] w-full rounded-[8px] px-[8px] border outline-none font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] ${isDarkMode ? 'bg-[#1a1a24] border-[#474756] text-white' : 'bg-white border-[#ececf3] text-[#1a1a24]'}`}
+                  >
+                    <option value="">全部</option>
+                    {selfAssessmentOptions.map((option) => (
                       <option key={option} value={option}>{option}</option>
                     ))}
                   </select>
@@ -313,7 +313,7 @@ export default function QuestionBankDesignPage() {
                           {template === 'compliance' ? category.riskCategory : category.process}
                         </p>
                         <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[13px] leading-[20px] ${isDarkMode ? 'text-[#99A1AF]' : 'text-[#747480]'}`}>
-                          {category.process}｜{category.department}｜{category.responsibleUnit}｜{category.internalRule}
+                          {category.process}｜{category.responsibleUnit}｜{category.department}｜{category.internalRule}
                         </p>
                       </div>
                     </label>

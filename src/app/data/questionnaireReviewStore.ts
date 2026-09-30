@@ -38,6 +38,7 @@ export interface QuestionnaireReviewItem {
   responsibleUnit: string;
   selfAssessmentUnits: string[];
   status: ReviewStatus;
+  questionIds?: string[];
 }
 
 let items: QuestionnaireReviewItem[] = [
@@ -175,6 +176,26 @@ let items: QuestionnaireReviewItem[] = [
     responsibleUnit: '凱基銀行 - 資訊部',
     selfAssessmentUnits: ['資訊科技部', '資訊部'],
     status: '已發送',
+  },
+  {
+    id: 'review-seed-return-1',
+    template: 'compliance',
+    title: '法令遵循自行評估表',
+    process: '個人貸款',
+    responsibleUnit: '凱基銀行 - 風管部',
+    selfAssessmentUnits: ['個金業務部'],
+    questionIds: ['comp-5-1', 'comp-5-2', 'comp-5-3'],
+    status: '已退回',
+  },
+  {
+    id: 'review-seed-return-2',
+    template: 'internal-control',
+    title: '內部控制制度自行查核表',
+    process: '法遵自行查核',
+    responsibleUnit: '凱基銀行 - 法遵部',
+    selfAssessmentUnits: ['法令遵循部'],
+    questionIds: ['ic-6-1', 'ic-6-2'],
+    status: '已退回',
   },
 ];
 const listeners = new Set<() => void>();

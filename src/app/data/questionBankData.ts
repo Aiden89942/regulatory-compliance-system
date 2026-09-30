@@ -620,6 +620,71 @@ export function getQuestionBankByTemplate(template: QuestionTemplate): QuestionB
   return template === 'compliance' ? COMPLIANCE_QUESTION_BANK : INTERNAL_CONTROL_QUESTION_BANK;
 }
 
+export function saveQuestionBankEntry(input: {
+  template: QuestionTemplate;
+  rowId?: string;
+  riskCategory: string;
+  process: string;
+  department: string;
+  responsibleUnit: string;
+  internalRule: string;
+  externalRule: string;
+  operationalRisk: string;
+  controlMeasure: string;
+  question: string;
+  inherentRisk: InherentRisk;
+  frequency: string;
+  checkOptions?: string[];
+}): string {
+  const bank = getQuestionBankByTemplate(input.template);
+  const prefix = input.template === 'compliance' ? 'comp' : 'ic';
+  const rowId = input.rowId || `${prefix}-new-${Date.now()}`;
+  const nextRow: QuestionBankRow = {
+    id: rowId,
+    externalRule: input.externalRule,
+    operationalRisk: input.operationalRisk,
+    controlMeasure: input.controlMeasure,
+    question: input.question,
+    inherentRisk: input.inherentRisk,
+    frequency: input.frequency,
+  };
+
+  for (const category of bank) {
+    const index = category.rows.findIndex((row) => row.id === rowId);
+    if (index < 0) continue;
+    category.rows[index] = nextRow;
+    if (input.riskCategory) category.riskCategory = input.riskCategory;
+    if (input.process) category.process = input.process;
+    if (input.department) category.department = input.department;
+    if (input.responsibleUnit) category.responsibleUnit = input.responsibleUnit;
+    if (input.internalRule) category.internalRule = input.internalRule;
+    if (input.checkOptions) setControlAnswerOptions(rowId, input.checkOptions);
+    return rowId;
+  }
+
+  const matched = bank.find((category) =>
+    category.process === input.process
+    && category.responsibleUnit === input.responsibleUnit
+    && category.department === input.department
+    && category.internalRule === input.internalRule
+  );
+  if (matched) {
+    matched.rows.push(nextRow);
+  } else {
+    bank.push({
+      id: `${prefix}-cat-${Date.now()}`,
+      riskCategory: input.riskCategory || input.process,
+      process: input.process,
+      department: input.department,
+      responsibleUnit: input.responsibleUnit,
+      internalRule: input.internalRule,
+      rows: [nextRow],
+    });
+  }
+  if (input.checkOptions) setControlAnswerOptions(rowId, input.checkOptions);
+  return rowId;
+}
+
 export function findQuestionRow(
   template: QuestionTemplate,
   rowId: string

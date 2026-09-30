@@ -13,6 +13,7 @@ import {
   getAnswerOptions,
   getQuestionBankByTemplate,
   getTemplateLabel,
+  saveQuestionBankEntry,
   setControlAnswerOptions,
 } from '../data/questionBankData';
 import {
@@ -22,7 +23,6 @@ import {
   formatSelfAssessmentUnits,
   matchResponsibleUnit,
   matchSelfAssessmentUnits,
-  submitQuestionnaireForReview,
 } from '../data/questionnaireReviewStore';
 
 const RISK_OPTIONS: { value: InherentRisk; label: string }[] = [
@@ -263,6 +263,7 @@ export default function QuestionBankEditPage() {
   const [template, setTemplate] = useState<QuestionTemplate>(initialTemplate);
   const [form, setForm] = useState<FormState>(() => buildState(initialTemplate, rowId, isNew));
   const [saved, setSaved] = useState(false);
+  const [savedRowId, setSavedRowId] = useState(isNew ? '' : rowId);
   const [customClass, setCustomClass] = useState<Partial<Record<ClassFieldKey, boolean>>>({});
   const [selfAssessmentOpen, setSelfAssessmentOpen] = useState(false);
   const selfAssessmentRef = useRef<HTMLDivElement>(null);
@@ -270,6 +271,7 @@ export default function QuestionBankEditPage() {
   useEffect(() => {
     setTemplate(initialTemplate);
     setSaved(false);
+    setSavedRowId(isNew ? '' : rowId);
     setCustomClass({});
     setSelfAssessmentOpen(false);
     setForm(buildState(initialTemplate, rowId, isNew));
@@ -372,16 +374,32 @@ export default function QuestionBankEditPage() {
     writeCheckOptions([...form.checkOptions, '']);
   };
 
-  const submitForReview = () => {
-    if (template === 'internal-control' && rowId) setControlAnswerOptions(rowId, form.checkOptions);
-    submitQuestionnaireForReview({
-      id: rowId || `${template}-${Date.now()}`,
+  const saveQuestion = () => {
+    const existingId = savedRowId;
+    const existing = existingId ? findQuestionRow(template, existingId) : undefined;
+    const department = form.selfAssessmentUnits.length
+      ? formatSelfAssessmentUnits(form.selfAssessmentUnits)
+      : (existing?.category.department || form.department);
+    const externalRule = template === 'compliance'
+      ? form.regulation
+      : (existing?.row.externalRule || form.checkBasis);
+    const id = saveQuestionBankEntry({
       template,
-      title: formTitle,
+      rowId: existingId || undefined,
+      riskCategory: template === 'internal-control' ? (form.riskCategory || form.processCategory) : (form.riskCategory || form.process),
       process: form.process,
-      responsibleUnit: form.responsibleUnit,
-      selfAssessmentUnits: form.selfAssessmentUnits,
+      department,
+      responsibleUnit: form.responsibleUnit || existing?.category.responsibleUnit || '',
+      internalRule: form.internalRule,
+      externalRule,
+      operationalRisk: template === 'compliance' ? (existing?.row.operationalRisk || '') : form.riskEvent,
+      controlMeasure: template === 'compliance' ? form.followProcedure : form.controlDesc,
+      question: template === 'compliance' ? (form.assessmentProcedure || existing?.row.question || '') : form.checkProcedure,
+      inherentRisk: template === 'compliance' ? (existing?.row.inherentRisk || 'none') : form.inherentRisk,
+      frequency: existing?.row.frequency || '',
+      checkOptions: template === 'internal-control' ? form.checkOptions : undefined,
     });
+    setSavedRowId(id);
     setSaved(true);
   };
 
@@ -448,11 +466,11 @@ export default function QuestionBankEditPage() {
                       </button>
                       <button
                         type="button"
-                        onClick={submitForReview}
+                        onClick={saveQuestion}
                         className="bg-[#ffe600] border-none rounded-[4px] px-[16px] py-[10px] cursor-pointer hover:bg-[#ffd000] transition-colors"
                       >
                         <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24] text-[15px]" style={{ fontVariationSettings: "'wght' 700" }}>
-                          {saved ? '已送審' : '儲存'}
+                          {saved ? '已儲存' : '儲存'}
                         </p>
                       </button>
                     </div>

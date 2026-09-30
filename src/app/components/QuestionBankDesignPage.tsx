@@ -14,6 +14,8 @@ import {
   QuestionBankRow,
   InherentRisk,
 } from '../data/questionBankData';
+import { getQuestionnaireDraft, saveQuestionnaireDraft } from '../data/questionnaireDraftStore';
+import { submitQuestionnaireForReview } from '../data/questionnaireReviewStore';
 
 const RISK_LABEL: Record<InherentRisk, string> = {
   high: '高風險',
@@ -117,7 +119,6 @@ export default function QuestionBankDesignPage() {
     compliance: [],
     'internal-control': [],
   });
-  const [designed, setDesigned] = useState(false);
   const [selfAssessmentFilter, setSelfAssessmentFilter] = useState('');
   const [responsibleFilter, setResponsibleFilter] = useState('');
 
@@ -155,15 +156,25 @@ export default function QuestionBankDesignPage() {
     return groups;
   }, [categories, selectedIds]);
 
+  const draftId = searchParams.get('draft') || '';
+
+  useEffect(() => {
+    if (!draftId) return;
+    const draft = getQuestionnaireDraft(draftId);
+    if (!draft) return;
+    setTemplate(draft.template === 'internal-control' ? 'internal-control' : 'compliance');
+    setSelected((prev) => ({ ...prev, [draft.template]: draft.questionIds }));
+    setSelfAssessmentFilter('');
+    setResponsibleFilter('');
+  }, [draftId]);
+
   const switchTemplate = (next: QuestionTemplate) => {
     setTemplate(next);
-    setDesigned(false);
     setSelfAssessmentFilter('');
     setResponsibleFilter('');
   };
 
   const toggleRow = (rowId: string) => {
-    setDesigned(false);
     setSelected((prev) => {
       const current = prev[template];
       const next = current.includes(rowId) ? current.filter((id) => id !== rowId) : [...current, rowId];
@@ -171,8 +182,51 @@ export default function QuestionBankDesignPage() {
     });
   };
 
+  const formTitle = template === 'compliance' ? '法令遵循自行評估表' : '內部控制制度自行查核表';
+
+  const buildDraft = () => {
+    const processes = [...new Set(previewGroups.map((group) => group.category.process))];
+    const responsibleUnits = [...new Set(previewGroups.map((group) => group.category.responsibleUnit))];
+    const departments = [...new Set(previewGroups.map((group) => group.category.department))];
+    const rules = [...new Set(previewGroups.map((group) => group.category.internalRule))];
+    const id = draftId || `draft-${Date.now()}`;
+    return {
+      id,
+      template,
+      title: formTitle,
+      process: processes.join('、'),
+      responsibleUnit: responsibleUnits.join('、'),
+      selfAssessmentUnits: departments,
+      internalRule: rules.join('、'),
+      questionIds: [...selectedIds],
+      reviewId: getQuestionnaireDraft(id)?.reviewId,
+    };
+  };
+
+  const finishDesign = () => {
+    if (selectedIds.length === 0) return;
+    saveQuestionnaireDraft(buildDraft());
+    onNavigate('question-bank-drafts');
+  };
+
+  const submitDesign = () => {
+    if (selectedIds.length === 0) return;
+    const draft = buildDraft();
+    const reviewId = draft.reviewId || `review-${draft.id}`;
+    submitQuestionnaireForReview({
+      id: reviewId,
+      template: draft.template,
+      title: draft.title,
+      process: draft.process,
+      responsibleUnit: draft.responsibleUnit,
+      selfAssessmentUnits: draft.selfAssessmentUnits,
+      questionIds: draft.questionIds,
+    });
+    saveQuestionnaireDraft({ ...draft, reviewId });
+    onNavigate('question-bank-drafts', undefined, { tab: '已送審' });
+  };
+
   const toggleGroup = (category: QuestionBankCategory) => {
-    setDesigned(false);
     const rowIds = category.rows.map((row) => row.id);
     const allChecked = rowIds.every((id) => selectedIds.includes(id));
     setSelected((prev) => {
@@ -183,8 +237,6 @@ export default function QuestionBankDesignPage() {
       return { ...prev, [template]: next };
     });
   };
-
-  const formTitle = template === 'compliance' ? '法令遵循自行評估表' : '內部控制制度自行查核表';
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'bg-[#1a1a24]' : 'bg-[#2e2e38]'}`}>
@@ -200,6 +252,7 @@ export default function QuestionBankDesignPage() {
                 items={[
                   { text: '首頁', onClick: () => onNavigate('home') },
                   { text: '題庫維護', onClick: () => onNavigate('question-bank') },
+                  { text: '問卷清單', onClick: () => onNavigate('question-bank-drafts') },
                   { text: '設計自評表', isActive: true },
                 ]}
               />
@@ -226,11 +279,22 @@ export default function QuestionBankDesignPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setDesigned(true)}
-                  className="bg-[#ffe600] border-none rounded-[8px] px-[20px] py-[12px] cursor-pointer hover:bg-[#ffd000] transition-colors"
+                  onClick={finishDesign}
+                  disabled={selectedIds.length === 0}
+                  className="bg-[#ffe600] border-none rounded-[8px] px-[20px] py-[12px] cursor-pointer hover:bg-[#ffd000] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24] text-[16px]" style={{ fontWeight: 700 }}>
-                    {designed ? '已完成設計' : '完成設計'}
+                    完成設計
+                  </p>
+                </button>
+                <button
+                  type="button"
+                  onClick={submitDesign}
+                  disabled={selectedIds.length === 0}
+                  className="bg-[#ffe600] border-none rounded-[8px] px-[20px] py-[12px] cursor-pointer hover:bg-[#ffd000] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24] text-[16px]" style={{ fontWeight: 700 }}>
+                    送審
                   </p>
                 </button>
               </div>

@@ -81,14 +81,6 @@ const ROLE_NOTIFICATIONS: Record<UserRole, AppNotification[]> = {
       query: { id: 'review-comp-1' },
     },
     {
-      id: 'r2',
-      title: '待發送',
-      message: '存款開戶問卷已審核通過，尚未發送至自評單位。',
-      time: '今天 14:05',
-      unread: true,
-      page: 'question-bank-review',
-    },
-    {
       id: 'r3',
       title: '缺失追蹤',
       message: '授信管理部有題目標示未符合，請至缺失追蹤查看。',
@@ -96,6 +88,25 @@ const ROLE_NOTIFICATIONS: Record<UserRole, AppNotification[]> = {
       unread: true,
       page: 'deficiency-tracking',
       query: { id: 'def-comp-1' },
+    },
+  ],
+  sender: [
+    {
+      id: 's1',
+      title: '待發送',
+      message: '存款開戶問卷已審核通過，請發送至自評單位。',
+      time: '今天 14:05',
+      unread: true,
+      page: 'question-bank-review',
+      query: { id: 'review-comp-2' },
+    },
+    {
+      id: 's2',
+      title: '填答逾期',
+      message: '有自評單位的問卷已逾期，請至填答情形總覽查看。',
+      time: '昨天 16:20',
+      unread: true,
+      page: 'home',
     },
   ],
 };
@@ -357,19 +368,30 @@ function NotificationBell({ onNavigate }: { onNavigate?: (page: string, supplier
   );
 }
 
+const ASSESSMENT_MENU = { text: '評估作業', page: 'risk-assessment', activePages: ['risk-assessment', 'risk-assessment-form', 'risk-assessment-view', 'risk-assessment-send', 'self-assessment'] };
+const DEFICIENCY_MENU = { text: '缺失追蹤', page: 'deficiency-tracking', activePages: ['deficiency-tracking'] };
+
 const ROLE_MENUS: Record<UserRole, { text: string; page: string; activePages: string[] }[]> = {
   assessor: [
     { text: '首頁', page: 'home', activePages: ['home'] },
-    { text: '評估作業', page: 'risk-assessment', activePages: ['risk-assessment', 'risk-assessment-form', 'risk-assessment-view', 'risk-assessment-send', 'self-assessment'] },
+    ASSESSMENT_MENU,
+    DEFICIENCY_MENU,
   ],
   maintainer: [
     { text: '首頁', page: 'home', activePages: ['home'] },
-    { text: '題庫維護', page: 'question-bank', activePages: ['question-bank', 'question-bank-edit', 'question-bank-design'] },
+    ASSESSMENT_MENU,
+    DEFICIENCY_MENU,
+    { text: '題庫維護', page: 'question-bank', activePages: ['question-bank', 'question-bank-edit', 'question-bank-design', 'question-bank-drafts'] },
   ],
   reviewer: [
     { text: '首頁', page: 'home', activePages: ['home'] },
-    { text: '問卷審核', page: 'question-bank-review', activePages: ['question-bank-review'] },
-    { text: '缺失追蹤', page: 'deficiency-tracking', activePages: ['deficiency-tracking'] },
+    ASSESSMENT_MENU,
+    DEFICIENCY_MENU,
+  ],
+  sender: [
+    { text: '首頁', page: 'home', activePages: ['home'] },
+    ASSESSMENT_MENU,
+    DEFICIENCY_MENU,
   ],
 };
 

@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import Header from './Header';
 import Footer from './Footer';
-import { useAppNavigate } from '../context/AppContext';
+import Breadcrumb from './Breadcrumb';
+import { useAppContext, useAppNavigate } from '../context/AppContext';
 import {
   findQuestionRow,
   getAnswerOptions,
@@ -27,11 +28,17 @@ const RISK_LABEL: Record<InherentRisk, string> = {
   none: '無',
 };
 
-function findReviewQuestions(item: QuestionnaireReviewItem): { category?: QuestionBankCategory; rows: QuestionBankRow[] } {
+function findReviewQuestions(item: QuestionnaireReviewItem): { category?: QuestionBankCategory; rows: { row: QuestionBankRow; category?: QuestionBankCategory }[] } {
+  if (item.questionIds?.length) {
+    const found = item.questionIds
+      .map((id) => findQuestionRow(item.template, id))
+      .filter((entry): entry is { category: QuestionBankCategory; row: QuestionBankRow } => Boolean(entry));
+    return { category: found[0]?.category, rows: found };
+  }
   const edited = findQuestionRow(item.template, item.id);
-  if (edited) return { category: edited.category, rows: [edited.row] };
+  if (edited) return { category: edited.category, rows: [edited] };
   const category = getQuestionBankByTemplate(item.template).find((group) => group.process === item.process);
-  return { category, rows: category?.rows ?? [] };
+  return { category, rows: (category?.rows ?? []).map((row) => ({ row, category })) };
 }
 
 function ChoiceRow({ options }: { options: string[] }) {
@@ -91,7 +98,7 @@ function QuestionnaireQuestion({
   );
 }
 
-function ReviewDetail({ item, onBack }: { item: QuestionnaireReviewItem; onBack: () => void }) {
+function ReviewDetail({ item, onBack, allowSend }: { item: QuestionnaireReviewItem; onBack: () => void; allowSend: boolean }) {
   const content = findReviewQuestions(item);
   const formTitle = item.title || (item.template === 'compliance' ? '法令遵循自行評估表' : '內部控制制度自行查核表');
 
@@ -118,13 +125,6 @@ function ReviewDetail({ item, onBack }: { item: QuestionnaireReviewItem; onBack:
               </button>
               <button
                 type="button"
-                onClick={() => setQuestionnaireReviewStatus(item.id, '已發送')}
-                className="bg-[#ffe600] border-none rounded-[4px] px-[12px] py-[8px] cursor-pointer hover:bg-[#ffd000]"
-              >
-                <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[14px] text-[#1a1a24]">審核通過並發送</p>
-              </button>
-              <button
-                type="button"
                 onClick={() => setQuestionnaireReviewStatus(item.id, '已退回')}
                 className="bg-[#f6f6fa] border-none rounded-[4px] px-[12px] py-[8px] cursor-pointer hover:bg-[#ececf3]"
               >
@@ -132,7 +132,7 @@ function ReviewDetail({ item, onBack }: { item: QuestionnaireReviewItem; onBack:
               </button>
             </>
           ) : null}
-          {item.status === '待發送' ? (
+          {allowSend && item.status === '待發送' ? (
             <button
               type="button"
               onClick={() => setQuestionnaireReviewStatus(item.id, '已發送')}
@@ -163,7 +163,7 @@ function ReviewDetail({ item, onBack }: { item: QuestionnaireReviewItem; onBack:
             <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] text-[#2e2e38]">業務項目：{item.process || '—'}</p>
             <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] text-[#2e2e38]">負責單位：{item.responsibleUnit || '—'}</p>
             <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] text-[#2e2e38]">自評單位：{formatSelfAssessmentUnits(item.selfAssessmentUnits)}</p>
-            <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] text-[#2e2e38]">內部規章：{content.category?.internalRule || '—'}</p>
+            <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] text-[#2e2e38]">內部規章：{[...new Set(content.rows.map((entry) => entry.category?.internalRule).filter(Boolean))].join('、') || '—'}</p>
           </div>
           {content.rows.length === 0 ? (
             <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] text-[#747480]">此問卷尚無題目內容。</p>
@@ -172,8 +172,8 @@ function ReviewDetail({ item, onBack }: { item: QuestionnaireReviewItem; onBack:
               <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[20px] text-[#1a1a24]" style={{ fontWeight: 700 }}>
                 {item.process}
               </p>
-              {content.rows.map((row, index) => (
-                <QuestionnaireQuestion key={row.id} template={item.template} category={content.category} row={row} no={index + 1} />
+              {content.rows.map((entry, index) => (
+                <QuestionnaireQuestion key={entry.row.id} template={item.template} category={entry.category} row={entry.row} no={index + 1} />
               ))}
             </div>
           )}
@@ -193,64 +193,50 @@ function ReviewDetail({ item, onBack }: { item: QuestionnaireReviewItem; onBack:
   );
 }
 
-const REVIEW_TABS = ['待審核', '待發送', '已發送'] as const;
+const REVIEW_TABS = ['待審核', '已審核', '待發送', '已發送'] as const;
 type ReviewTab = (typeof REVIEW_TABS)[number];
 
 function inReviewTab(status: QuestionnaireReviewItem['status'], tab: ReviewTab) {
-  if (tab === '待審核') return status === '待審核' || status === '已退回';
+  if (tab === '待審核') return status === '待審核';
+  if (tab === '已審核') return status === '已退回' || status === '待發送' || status === '已發送';
   return status === tab;
 }
 
-export default function QuestionBankReviewPage() {
+function roleCanSee(role: string, status: QuestionnaireReviewItem['status']) {
+  if (role === 'reviewer') return status === '待審核' || status === '已退回' || status === '待發送' || status === '已發送';
+  if (role === 'sender') return status === '待發送' || status === '已發送';
+  return false;
+}
+
+export function QuestionnaireWorkPanel() {
+  const { currentUser, isDarkMode } = useAppContext();
   const onNavigate = useAppNavigate();
-  const [searchParams] = useSearchParams();
   const reviews = useQuestionnaireReviews();
-  const [tab, setTab] = useState<ReviewTab>('待審核');
+  const role = currentUser.role;
+  const tabs: ReviewTab[] = role === 'sender' ? ['待發送', '已發送'] : ['待審核', '已審核'];
+  const [tab, setTab] = useState<ReviewTab>(tabs[0]);
   const [template, setTemplate] = useState<QuestionTemplate>('compliance');
-  const selected = reviews.find((item) => item.id === searchParams.get('id'));
-  const tabItems = reviews.filter((item) => inReviewTab(item.status, tab));
+  const activeTab = tabs.includes(tab) ? tab : tabs[0];
+  const tabItems = reviews.filter((item) => inReviewTab(item.status, activeTab) && roleCanSee(role, item.status));
   const visible = tabItems.filter((item) => item.template === template);
+  const heading = role === 'sender' ? '問卷發送' : '問卷審核';
+
+  useEffect(() => {
+    setTab(role === 'sender' ? '待發送' : '待審核');
+  }, [role]);
+
+  if (role !== 'reviewer' && role !== 'sender') return null;
 
   return (
-    <div className="bg-[#2e2e38] flex flex-col items-start w-full min-h-screen">
-      <Header onNavigate={onNavigate} currentPage="question-bank-review" />
-      <div className="pt-[120px] w-full">
-        <div className="bg-[#ececf3] flex flex-col items-center py-[32px] rounded-tl-[32px] rounded-tr-[32px] w-full min-h-[calc(100vh-120px)]">
-          <div className="flex flex-col gap-[32px] items-center px-[32px] w-[1440px]">
-            <div className="flex gap-[8px] h-[24px] items-center w-full">
-              <button type="button" onClick={() => onNavigate('home')} className="bg-transparent border-none cursor-pointer p-0">
-                <p className="font-['Inter:Regular','Noto_Sans_JP:Regular',sans-serif] font-normal leading-[24px] text-[#747480] text-[16px] tracking-[-0.3125px]">首頁</p>
-              </button>
-              <p className="text-[#4A5565] text-[16px]">/</p>
-              <button type="button" onClick={() => onNavigate('question-bank')} className="bg-transparent border-none cursor-pointer p-0">
-                <p className="font-['Inter:Regular','Noto_Sans_JP:Regular',sans-serif] font-normal leading-[24px] text-[#747480] text-[16px] tracking-[-0.3125px]">題庫維護</p>
-              </button>
-              <p className="text-[#4A5565] text-[16px]">/</p>
-              {selected ? (
-                <button type="button" onClick={() => onNavigate('question-bank-review')} className="bg-transparent border-none cursor-pointer p-0">
-                  <p className="font-['Inter:Regular','Noto_Sans_JP:Regular',sans-serif] font-normal leading-[24px] text-[#747480] text-[16px] tracking-[-0.3125px]">問卷審核</p>
-                </button>
-              ) : (
-                <p className="font-['Inter:Bold','Noto_Sans_JP:Bold',sans-serif] font-bold leading-[24px] text-[#1a1a24] text-[16px] tracking-[-0.3125px]">問卷審核</p>
-              )}
-              {selected ? (
-                <>
-                  <p className="text-[#4A5565] text-[16px]">/</p>
-                  <p className="font-['Inter:Bold','Noto_Sans_JP:Bold',sans-serif] font-bold leading-[24px] text-[#1a1a24] text-[16px] tracking-[-0.3125px]">{selected.process || selected.title}</p>
-                </>
-              ) : null}
-            </div>
-
-            {selected ? (
-              <ReviewDetail item={selected} onBack={() => onNavigate('question-bank-review')} />
-            ) : null}
-
-            {!selected ? (
-              <div className="bg-white rounded-[8px] w-full overflow-clip">
+    <div className="flex flex-col gap-[16px] w-[1360px]">
+      <p className={`font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[32px] tracking-[0.96px] ${isDarkMode ? 'text-white' : 'text-black'}`} style={{ fontWeight: 700 }}>
+        {heading}
+      </p>
+      <div className="bg-white rounded-[8px] w-full overflow-clip">
                 <div className="bg-[#f6f6fa] flex items-stretch w-full">
-                  {REVIEW_TABS.map((name) => {
+                  {tabs.map((name) => {
                     const count = reviews.filter((item) => inReviewTab(item.status, name)).length;
-                    const active = tab === name;
+                    const active = activeTab === name;
                     return (
                       <button
                         key={name}
@@ -317,7 +303,7 @@ export default function QuestionBankReviewPage() {
                                 >
                                   <p className="underline font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] text-[#1a1a24]">查看</p>
                                 </button>
-                                {item.status === '待發送' ? (
+                                {role === 'sender' && item.status === '待發送' ? (
                                   <button
                                     type="button"
                                     onClick={() => setQuestionnaireReviewStatus(item.id, '已發送')}
@@ -335,11 +321,41 @@ export default function QuestionBankReviewPage() {
                   </div>
                 )}
               </div>
-            ) : null}
-          </div>
+    </div>
+  );
+}
+
+export default function QuestionBankReviewPage() {
+  const { isDarkMode, currentUser } = useAppContext();
+  const onNavigate = useAppNavigate();
+  const [searchParams] = useSearchParams();
+  const reviews = useQuestionnaireReviews();
+  const item = reviews.find((row) => row.id === searchParams.get('id') && roleCanSee(currentUser.role, row.status));
+  const pageTitle = currentUser.role === 'sender' ? '問卷發送' : '問卷審核';
+
+  return (
+    <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'bg-[#1a1a24]' : 'bg-[#2e2e38]'}`}>
+      <Header onNavigate={onNavigate} currentPage="home" />
+      <div className={`${isDarkMode ? 'bg-[#1a1a24]' : 'bg-[#ececf3]'} flex flex-col gap-[32px] items-center px-0 py-[32px] pt-[152px] w-full min-h-[calc(100vh-152px)]`}>
+        <div className="w-full max-w-[1440px] px-[32px] flex flex-col gap-[24px]">
+          <Breadcrumb
+            isDarkMode={isDarkMode}
+            onNavigate={onNavigate}
+            items={[
+              { text: '首頁', onClick: () => onNavigate('home') },
+              { text: pageTitle, isActive: true },
+            ]}
+          />
+          {item ? (
+            <ReviewDetail item={item} onBack={() => onNavigate('home')} allowSend={currentUser.role === 'sender'} />
+          ) : (
+            <div className="bg-white rounded-[8px] px-[24px] py-[48px]">
+              <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] text-[#747480]">找不到這份問卷。</p>
+            </div>
+          )}
         </div>
-        <Footer />
       </div>
+      <Footer />
     </div>
   );
 }

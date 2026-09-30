@@ -147,7 +147,7 @@ export default function DeficiencyTrackingPage() {
   return (
     <div className="bg-[#2e2e38] flex flex-col items-start w-full min-h-screen">
       <Header onNavigate={onNavigate} currentPage="deficiency-tracking" />
-      <div className="bg-[#ececf3] flex flex-col items-center py-[32px] rounded-tl-[32px] rounded-tr-[32px] w-full pt-[152px] min-h-[calc(100vh-0px)]">
+      <div className="bg-[#ececf3] flex flex-1 flex-col items-center py-[32px] rounded-tl-[32px] rounded-tr-[32px] w-full pt-[152px]">
         <div className="flex flex-col gap-[32px] items-start px-[32px] w-[1440px]">
           <div className="flex gap-[8px] h-[24px] items-center">
             <button type="button" onClick={() => onNavigate('home')} className="bg-transparent border-none cursor-pointer p-0">
@@ -272,10 +272,8 @@ export default function DeficiencyTrackingPage() {
             </div>
           )}
         </div>
-        <div className="w-full mt-[32px]">
-          <Footer />
-        </div>
       </div>
+      <Footer />
     </div>
   );
 }

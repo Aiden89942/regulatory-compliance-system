@@ -38,6 +38,7 @@ export function pageToPath(page: string, supplier?: string, query?: Record<strin
     'question-bank': '/question-bank',
     'question-bank-edit': '/question-bank-edit',
     'question-bank-design': '/question-bank-design',
+    'question-bank-drafts': '/question-bank-drafts',
     'question-bank-review': '/question-bank-review',
     'self-assessment': '/self-assessment',
     'deficiency-tracking': '/deficiency-tracking',
@@ -91,6 +92,7 @@ export function pathToPage(pathname: string): string {
     '/question-bank': 'question-bank',
     '/question-bank-edit': 'question-bank-edit',
     '/question-bank-design': 'question-bank-design',
+    '/question-bank-drafts': 'question-bank-drafts',
     '/question-bank-review': 'question-bank-review',
     '/self-assessment': 'self-assessment',
     '/deficiency-tracking': 'deficiency-tracking',
@@ -99,7 +101,7 @@ export function pathToPage(pathname: string): string {
   return map[pathname] || 'home';
 }
 
-export type UserRole = 'assessor' | 'maintainer' | 'reviewer';
+export type UserRole = 'assessor' | 'maintainer' | 'reviewer' | 'sender';
 
 export interface AppUser {
   id: string;
@@ -112,13 +114,17 @@ export interface AppUser {
 export const APP_USERS: AppUser[] = [
   { id: 'assessor', role: 'assessor', name: '陳宜安', roleLabel: '自評人員', unit: '授信管理部' },
   { id: 'maintainer', role: 'maintainer', name: '林志明', roleLabel: '問卷維護', unit: '凱基銀行 - 風管部' },
-  { id: 'reviewer', role: 'reviewer', name: '黃淑芬', roleLabel: '審核與發送', unit: '凱基金控 - 法遵部' },
+  { id: 'reviewer', role: 'reviewer', name: '黃淑芬', roleLabel: '問卷審核', unit: '凱基金控 - 法遵部' },
+  { id: 'sender', role: 'sender', name: '問卷發送', roleLabel: '問卷發送', unit: '凱基金控' },
 ];
 
+const ASSESSMENT_PAGES = ['risk-assessment', 'risk-assessment-form', 'risk-assessment-view', 'risk-assessment-send', 'self-assessment'];
+
 export const ROLE_PAGES: Record<UserRole, string[]> = {
-  assessor: ['home', 'risk-assessment', 'risk-assessment-form', 'risk-assessment-view', 'risk-assessment-send', 'self-assessment'],
-  maintainer: ['home', 'question-bank', 'question-bank-edit', 'question-bank-design'],
-  reviewer: ['home', 'question-bank-review', 'deficiency-tracking'],
+  assessor: ['home', ...ASSESSMENT_PAGES, 'deficiency-tracking'],
+  maintainer: ['home', ...ASSESSMENT_PAGES, 'deficiency-tracking', 'question-bank', 'question-bank-edit', 'question-bank-design', 'question-bank-drafts'],
+  reviewer: ['home', ...ASSESSMENT_PAGES, 'deficiency-tracking', 'question-bank-review'],
+  sender: ['home', ...ASSESSMENT_PAGES, 'deficiency-tracking', 'question-bank-review'],
 };
 
 interface AppContextType {

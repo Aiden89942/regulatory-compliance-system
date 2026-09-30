@@ -25,6 +25,7 @@ import SupplierRiskAssessmentResultPage from './components/SupplierRiskAssessmen
 import QuestionBankPage from './components/QuestionBankPage';
 import QuestionBankEditPage from './components/QuestionBankEditPage';
 import QuestionBankDesignPage from './components/QuestionBankDesignPage';
+import QuestionBankDraftPage from './components/QuestionBankDraftPage';
 import QuestionBankReviewPage from './components/QuestionBankReviewPage';
 import SelfAssessmentPage from './components/SelfAssessmentPage';
 import ManagementReportPage from './components/ManagementReportPage';
@@ -49,7 +50,7 @@ function RootLayout() {
 // Page wrapper components that bridge React Router to existing prop-based components
 
 function HomePage() {
-  const { isDarkMode, toggleDarkMode, selectedYear, setSelectedYear, isYearDropdownOpen, setIsYearDropdownOpen } = useAppContext();
+  const { currentUser, isDarkMode, toggleDarkMode, selectedYear, setSelectedYear, isYearDropdownOpen, setIsYearDropdownOpen } = useAppContext();
   const onNavigate = useAppNavigate();
   const years = Array.from({ length: 11 }, (_, i) => 2024 - i);
 
@@ -64,6 +65,7 @@ function HomePage() {
         onToggleDarkMode={toggleDarkMode}
         years={years}
         onNavigate={onNavigate}
+        showQuestionnaireOverview={currentUser.role === 'sender'}
       />
     </div>
   );
@@ -243,6 +245,10 @@ function QuestionBankDesignPageWrapper() {
   return <QuestionBankDesignPage />;
 }
 
+function QuestionBankDraftPageWrapper() {
+  return <QuestionBankDraftPage />;
+}
+
 function QuestionBankReviewPageWrapper() {
   return <QuestionBankReviewPage />;
 }
@@ -328,6 +334,7 @@ export const router = createHashRouter([
       { path: 'question-bank', Component: QuestionBankPageWrapper },
       { path: 'question-bank-edit', Component: QuestionBankEditPageWrapper },
       { path: 'question-bank-design', Component: QuestionBankDesignPageWrapper },
+      { path: 'question-bank-drafts', Component: QuestionBankDraftPageWrapper },
       { path: 'question-bank-review', Component: QuestionBankReviewPageWrapper },
       { path: 'self-assessment', Component: SelfAssessmentPageWrapper },
       { path: 'deficiency-tracking', Component: DeficiencyTrackingPageWrapper },

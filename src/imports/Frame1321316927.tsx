@@ -8,6 +8,7 @@ import SupplierRiskAnalysis from "../app/components/SupplierRiskAnalysis";
 import Frame1321316923 from "./Frame1321316923";
 import Header from "../app/components/Header";
 import Footer from "../app/components/Footer";
+import { QuestionnaireWorkPanel } from "../app/components/QuestionBankReviewPage";
 import VendorRiskProgressTracking from "../app/components/VendorRiskProgressTracking";
 
 type Frame1321316927Props = {
@@ -19,6 +20,7 @@ type Frame1321316927Props = {
   onToggleDarkMode: () => void;
   years: number[];
   onNavigate?: (page: string) => void;
+  showQuestionnaireOverview?: boolean;
 };
 
 function BackgroundImage15({ children }: React.PropsWithChildren<{}>) {
@@ -583,7 +585,7 @@ function BackgroundImageAndText2({ text, isDarkMode = false, isYellowCard = fals
   return (
     <div className="basis-0 content-stretch flex flex-col gap-[10px] grow items-start min-h-px min-w-px relative shrink-0">
       <p className={`font-['EYInterstate:Regular',sans-serif] leading-[normal] not-italic relative shrink-0 ${textColor} text-[22px] w-full transition-colors duration-300`}>{text}</p>
-      <BackgroundImageAndText1 text="0" isDarkMode={isDarkMode} isYellowCard={isYellowCard} />
+      <BackgroundImageAndText1 text="3" isDarkMode={isDarkMode} isYellowCard={isYellowCard} />
     </div>
   );
 }
@@ -1177,12 +1179,12 @@ type TodolistProps = {
   onNavigate?: (page: string) => void;
 };
 
-function Todolist({ isExpanded, isDarkMode = false, onNavigate }: TodolistProps) {
+function Todolist({ isExpanded, isDarkMode = false, onNavigate, showFillTracking = false }: TodolistProps & { showFillTracking?: boolean }) {
   return (
     <DraggableScroll className="w-[1360px]">
       <div className="content-stretch flex gap-[32px] items-center pb-0 pt-[20px] px-0 relative shrink-0" data-name="todolist" style={{ width: 'max-content' }}>
         <InventoryCard isDarkMode={isDarkMode} />
-        <Button3 isDarkMode={isDarkMode} />
+        {showFillTracking ? <Button3 isDarkMode={isDarkMode} /> : null}
         <Button4 isDarkMode={isDarkMode} />
       </div>
     </DraggableScroll>
@@ -1197,11 +1199,11 @@ type Frame45Props = {
   onNavigate?: (page: string) => void;
 };
 
-function Frame45({ isExpanded, onToggleExpanded, isDarkMode, onToggleDarkMode, onNavigate }: Frame45Props) {
+function Frame45({ isExpanded, onToggleExpanded, isDarkMode, onToggleDarkMode, onNavigate, showFillTracking = false }: Frame45Props & { showFillTracking?: boolean }) {
   return (
     <div className="content-stretch flex flex-col gap-[24px] items-start relative shrink-0 w-[1360px]">
       <Frame20 isExpanded={isExpanded} onToggleExpanded={onToggleExpanded} isDarkMode={isDarkMode} onToggleDarkMode={onToggleDarkMode} />
-      <Todolist isExpanded={isExpanded} isDarkMode={isDarkMode} onNavigate={onNavigate} />
+      <Todolist isExpanded={isExpanded} isDarkMode={isDarkMode} onNavigate={onNavigate} showFillTracking={showFillTracking} />
     </div>
   );
 }
@@ -2476,29 +2478,34 @@ export default function Frame1321316927({
   onToggleDarkMode,
   years,
   onNavigate,
+  showQuestionnaireOverview = false,
 }: Frame1321316927Props) {
   const [isExpanded, setIsExpanded] = useState(true);
 
   return (
-    <div className={`min-h-screen pb-0 pt-[150px] transition-colors duration-300 ${isDarkMode ? 'bg-[#1A1A24]' : 'bg-[#f6f6fa]'}`}>
+    <div className={`min-h-screen flex flex-col pb-0 pt-[150px] transition-colors duration-300 ${isDarkMode ? 'bg-[#1A1A24]' : 'bg-[#f6f6fa]'}`}>
       <Header onNavigate={onNavigate} currentPage="home" />
-      <div className="flex flex-col items-center px-[32px] pt-[32px] pb-[32px] gap-[32px] max-w-[1920px] mx-auto">
+      <div className="flex flex-col flex-1 items-center px-[32px] pt-[32px] pb-[32px] gap-[32px] w-full max-w-[1920px] mx-auto">
         <Frame45
           isExpanded={isExpanded}
           onToggleExpanded={() => setIsExpanded(!isExpanded)}
           isDarkMode={isDarkMode}
           onToggleDarkMode={onToggleDarkMode}
           onNavigate={onNavigate}
+          showFillTracking={showQuestionnaireOverview}
         />
-        <Frame46
-          selectedYear={selectedYear}
-          isYearDropdownOpen={isYearDropdownOpen}
-          onToggleYearDropdown={onToggleYearDropdown}
-          years={years}
-          onYearChange={onYearChange}
-          isDarkMode={isDarkMode}
-        />
-        <Frame92 isDarkMode={isDarkMode} />
+        <QuestionnaireWorkPanel />
+        {showQuestionnaireOverview ? (
+          <Frame46
+            selectedYear={selectedYear}
+            isYearDropdownOpen={isYearDropdownOpen}
+            onToggleYearDropdown={onToggleYearDropdown}
+            years={years}
+            onYearChange={onYearChange}
+            isDarkMode={isDarkMode}
+          />
+        ) : null}
+        {showQuestionnaireOverview ? <Frame92 isDarkMode={isDarkMode} /> : null}
       </div>
       <Footer />
     </div>

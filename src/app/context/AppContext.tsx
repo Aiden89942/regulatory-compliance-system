@@ -112,10 +112,10 @@ export interface AppUser {
 }
 
 export const APP_USERS: AppUser[] = [
-  { id: 'assessor', role: 'assessor', name: '陳宜安', roleLabel: '自評人員', unit: '授信管理部' },
   { id: 'maintainer', role: 'maintainer', name: '林志明', roleLabel: '問卷維護', unit: '凱基銀行 - 風管部' },
   { id: 'reviewer', role: 'reviewer', name: '黃淑芬', roleLabel: '問卷審核', unit: '凱基金控 - 法遵部' },
   { id: 'sender', role: 'sender', name: '問卷發送', roleLabel: '問卷發送', unit: '凱基金控' },
+  { id: 'assessor', role: 'assessor', name: '陳宜安', roleLabel: '自評人員', unit: '授信管理部' },
 ];
 
 const ASSESSMENT_PAGES = ['risk-assessment', 'risk-assessment-form', 'risk-assessment-view', 'risk-assessment-send', 'self-assessment'];
@@ -151,8 +151,8 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [currentUserId, setCurrentUserId] = useState(APP_USERS[1].id);
-  const currentUser = APP_USERS.find((user) => user.id === currentUserId) || APP_USERS[1];
+  const [currentUserId, setCurrentUserId] = useState('maintainer');
+  const currentUser = APP_USERS.find((user) => user.id === currentUserId) || APP_USERS[0];
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [selectedYear, setSelectedYear] = useState(2025);
   const [isYearDropdownOpen, setIsYearDropdownOpen] = useState(false);

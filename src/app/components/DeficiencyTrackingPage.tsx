@@ -3,12 +3,20 @@ import { useSearchParams } from 'react-router';
 import Header from './Header';
 import Footer from './Footer';
 import { useAppNavigate } from '../context/AppContext';
-import { QuestionTemplate } from '../data/questionBankData';
+import {
+  findQuestionRow,
+  getAnswerOptions,
+  InherentRisk,
+  QuestionBankCategory,
+  QuestionBankRow,
+  QuestionTemplate,
+} from '../data/questionBankData';
 
 interface FlaggedQuestion {
-  question: string;
-  result: '未符合';
+  questionId: string;
   comment: string;
+  answer: string;
+  evidence: string;
 }
 
 interface FlaggedQuestionnaire {
@@ -20,6 +28,13 @@ interface FlaggedQuestionnaire {
   questions: FlaggedQuestion[];
 }
 
+const RISK_LABEL: Record<InherentRisk, string> = {
+  high: '高風險',
+  medium: '中風險',
+  low: '低風險',
+  none: '無',
+};
+
 const FLAGGED_QUESTIONNAIRES: FlaggedQuestionnaire[] = [
   {
     id: 'def-comp-1',
@@ -29,14 +44,16 @@ const FLAGGED_QUESTIONNAIRES: FlaggedQuestionnaire[] = [
     unit: '授信管理部',
     questions: [
       {
-        question: '名單資料庫應定期更新。',
-        result: '未符合',
+        questionId: 'comp-1-1',
         comment: '查核單位覆核時，未見最近一期名單更新紀錄。',
+        answer: '未符合',
+        evidence: '',
       },
       {
-        question: '各級授信人員就其所辦理有利害關係之授信案件時應予迴避，改由職務代理人代為執行職務。',
-        result: '未符合',
+        questionId: 'comp-1-2',
         comment: '抽查案件未留存迴避與職務代理紀錄。',
+        answer: '未符合',
+        evidence: '',
       },
     ],
   },
@@ -48,9 +65,10 @@ const FLAGGED_QUESTIONNAIRES: FlaggedQuestionnaire[] = [
     unit: '營業部',
     questions: [
       {
-        question: '開戶作業是否落實證件核對？',
-        result: '未符合',
+        questionId: 'comp-2-1',
         comment: '部分開戶案件缺少雙證件核對紀錄。',
+        answer: '未符合',
+        evidence: '',
       },
     ],
   },
@@ -62,14 +80,16 @@ const FLAGGED_QUESTIONNAIRES: FlaggedQuestionnaire[] = [
     unit: '資訊科技部',
     questions: [
       {
-        question: '是否已評估供應商涉及之資訊資產？',
-        result: '未符合',
+        questionId: 'comp-3-1',
         comment: '資訊資產清單未涵蓋核心系統與關鍵設備。',
+        answer: '未符合',
+        evidence: '',
       },
       {
-        question: '與供應商之傳輸連線方式是否已評估並符合要求？',
-        result: '未符合',
+        questionId: 'comp-3-3',
         comment: '未說明連線是否加密，也沒有替代傳輸路徑。',
+        answer: '未符合',
+        evidence: '',
       },
     ],
   },
@@ -81,9 +101,10 @@ const FLAGGED_QUESTIONNAIRES: FlaggedQuestionnaire[] = [
     unit: '稽核處',
     questions: [
       {
-        question: '自行查核發現之缺失是否已完成追蹤及改善？',
-        result: '未符合',
+        questionId: 'ic-1-2',
         comment: '前期缺失仍未結案，追蹤表未更新改善期限。',
+        answer: '否',
+        evidence: '',
       },
     ],
   },
@@ -95,9 +116,10 @@ const FLAGGED_QUESTIONNAIRES: FlaggedQuestionnaire[] = [
     unit: '資訊部',
     questions: [
       {
-        question: '系統帳號與權限是否已依規定完成定期覆核？',
-        result: '未符合',
+        questionId: 'ic-2-1',
         comment: '本季權限覆核紀錄缺漏，離職人員帳號尚未停用。',
+        answer: '否',
+        evidence: '',
       },
     ],
   },
@@ -125,24 +147,182 @@ function DataCell({ text }: { text: string }) {
   );
 }
 
+function DeficiencyQuestion({
+  template,
+  category,
+  row,
+  no,
+  comment,
+  answer,
+  evidence,
+  onChange,
+}: {
+  template: QuestionTemplate;
+  category?: QuestionBankCategory;
+  row: QuestionBankRow;
+  no: number;
+  comment: string;
+  answer: string;
+  evidence: string;
+  onChange: (patch: Partial<FlaggedQuestion>) => void;
+}) {
+  const reference = template === 'compliance' ? row.externalRule : (category?.internalRule || row.externalRule);
+  const referenceLabel = template === 'compliance' ? '應遵循之法令規章' : '自查依據';
+  const title = template === 'compliance' ? row.controlMeasure : row.question;
+  const evidenceLabel = template === 'compliance' ? '佐證文件或說明' : '佐證文件及說明';
+
+  return (
+    <div className="flex flex-col gap-[10px] w-full pb-[8px] border-b border-[#ececf3] last:border-b-0">
+      <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[16px] leading-[23px] text-[#1a1a24] whitespace-pre-wrap" style={{ fontWeight: 700 }}>
+        {no}. {title}
+      </p>
+      <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] leading-[22px] text-[#747480]">
+        {referenceLabel}：{reference}
+      </p>
+      {template === 'internal-control' ? (
+        <>
+          <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] leading-[22px] text-[#747480]">
+            作業風險事件描述：{row.operationalRisk}（{RISK_LABEL[row.inherentRisk]}）
+          </p>
+          <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] leading-[23px] text-[#2e2e38] whitespace-pre-wrap">
+            控制描述：{row.controlMeasure}
+          </p>
+        </>
+      ) : null}
+      <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] leading-[22px] text-[#ec5242]">審核說明：{comment}</p>
+      <div className="flex gap-[16px] items-center flex-wrap">
+        {getAnswerOptions(template, row.id).map((label) => (
+          <button
+            key={label}
+            type="button"
+            onClick={() => onChange({ answer: label })}
+            className="flex gap-[6px] items-center bg-transparent border-none cursor-pointer p-0"
+          >
+            <svg viewBox="0 0 20 20" className="block size-[20px] shrink-0" aria-hidden="true">
+              <circle cx="10" cy="10" r="9.5" fill="#fff" stroke={answer === label ? '#1a1a24' : '#c4c4cd'} strokeWidth="1" />
+              {answer === label ? <circle cx="10" cy="10" r="4" fill="#1a1a24" /> : null}
+            </svg>
+            <span className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[#2e2e38] text-[16px]">{label}</span>
+          </button>
+        ))}
+      </div>
+      <textarea
+        value={evidence}
+        onChange={(event) => onChange({ evidence: event.target.value })}
+        placeholder={evidenceLabel}
+        rows={3}
+        className="w-full bg-[#f6f6fa] text-[#1a1a24] placeholder:text-[#99A1AF] border border-[#ececf3] rounded-[8px] px-[12px] py-[12px] outline-none font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] resize-y"
+      />
+    </div>
+  );
+}
+
+function DeficiencyForm({
+  item,
+  onBack,
+  onChange,
+  onSubmit,
+}: {
+  item: FlaggedQuestionnaire;
+  onBack: () => void;
+  onChange: (questionId: string, patch: Partial<FlaggedQuestion>) => void;
+  onSubmit: () => void;
+}) {
+  const rows = item.questions
+    .map((question) => ({ question, found: findQuestionRow(item.template, question.questionId) }))
+    .filter((entry): entry is { question: FlaggedQuestion; found: { category: QuestionBankCategory; row: QuestionBankRow } } => Boolean(entry.found));
+  const internalRules = [...new Set(rows.map((entry) => entry.found.category.internalRule).filter(Boolean))];
+  const formTitle = item.template === 'compliance' ? '法令遵循自行評估表' : '內部控制制度自行查核表';
+
+  return (
+    <div className="flex flex-col gap-[16px] w-full">
+      <div className="flex justify-end gap-[8px] items-center">
+        <button type="button" onClick={onBack} className="bg-white border border-[#e5e7eb] rounded-[4px] px-[16px] py-[8px] cursor-pointer">
+          <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] text-[#1a1a24]">返回列表</p>
+        </button>
+        <button type="button" onClick={onSubmit} className="bg-[#ffe600] border-none rounded-[4px] px-[16px] py-[8px] cursor-pointer hover:bg-[#ffd000]">
+          <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[14px] text-[#1a1a24]" style={{ fontWeight: 700 }}>再次送出</p>
+        </button>
+      </div>
+      <div className="w-full">
+        <div className="bg-[#747480] rounded-tl-[8px] rounded-tr-[8px] w-full">
+          <div className="flex items-center justify-between gap-[16px] p-[24px]">
+            <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] leading-[normal] text-[22px] text-white" style={{ fontWeight: 700 }}>{formTitle}</p>
+            <p className="font-['EYInterstate:Regular',sans-serif] text-[14px] text-white shrink-0">共 {rows.length} 題</p>
+          </div>
+        </div>
+        <div className="bg-white flex flex-col gap-[24px] items-start p-[24px] rounded-bl-[8px] rounded-br-[8px] w-full">
+          <div className="grid grid-cols-2 gap-x-[24px] gap-y-[12px] w-full">
+            <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] text-[#2e2e38]">業務項目：{item.process}</p>
+            <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] text-[#2e2e38]">負責單位：{item.responsibleUnit}</p>
+            <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] text-[#2e2e38]">自評單位：{item.unit}</p>
+            <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] text-[#2e2e38]">內部規章：{internalRules.join('、') || '—'}</p>
+          </div>
+          <div className="flex flex-col gap-[16px] w-full">
+            <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[20px] text-[#1a1a24]" style={{ fontWeight: 700 }}>{item.process}</p>
+            {rows.map((entry, index) => (
+              <DeficiencyQuestion
+                key={entry.question.questionId}
+                template={item.template}
+                category={entry.found.category}
+                row={entry.found.row}
+                no={index + 1}
+                comment={entry.question.comment}
+                answer={entry.question.answer}
+                evidence={entry.question.evidence}
+                onChange={(patch) => onChange(entry.question.questionId, patch)}
+              />
+            ))}
+          </div>
+          <div className="flex gap-[16px] w-full pt-[8px]">
+            {['填寫人簽章', '部門主管簽章'].map((title) => (
+              <div key={title} className="flex-1 bg-[#ececf3] rounded-[8px] p-[16px] flex flex-col items-center gap-[8px]">
+                <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] text-[#4a5565]">{title}</p>
+                <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] text-[#99a1af] h-[48px] flex items-center">[ 簽章區域 ]</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function DeficiencyTrackingPage() {
   const onNavigate = useAppNavigate();
   const [searchParams] = useSearchParams();
   const [template, setTemplate] = useState<QuestionTemplate>('compliance');
   const [searchQuery, setSearchQuery] = useState('');
+  const [questionnaires, setQuestionnaires] = useState(FLAGGED_QUESTIONNAIRES);
   const selectedId = searchParams.get('id') || '';
-  const selected = FLAGGED_QUESTIONNAIRES.find((item) => item.id === selectedId);
+  const selected = questionnaires.find((item) => item.id === selectedId);
+
+  const updateQuestion = (questionId: string, patch: Partial<FlaggedQuestion>) => {
+    setQuestionnaires((current) => current.map((item) => {
+      if (item.id !== selectedId) return item;
+      return {
+        ...item,
+        questions: item.questions.map((entry) => (entry.questionId === questionId ? { ...entry, ...patch } : entry)),
+      };
+    }));
+  };
+
+  const resubmit = () => {
+    if (!selected) return;
+    setQuestionnaires((current) => current.filter((item) => item.id !== selected.id));
+    onNavigate('deficiency-tracking');
+  };
 
   const visible = useMemo(() => {
     const keyword = searchQuery.trim();
-    return FLAGGED_QUESTIONNAIRES.filter((item) => item.template === template).filter((item) => {
+    return questionnaires.filter((item) => item.template === template).filter((item) => {
       if (!keyword) return true;
       return item.process.includes(keyword) || item.responsibleUnit.includes(keyword) || item.unit.includes(keyword);
     });
-  }, [template, searchQuery]);
+  }, [questionnaires, template, searchQuery]);
 
-  const complianceCount = FLAGGED_QUESTIONNAIRES.filter((item) => item.template === 'compliance').length;
-  const controlCount = FLAGGED_QUESTIONNAIRES.filter((item) => item.template === 'internal-control').length;
+  const complianceCount = questionnaires.filter((item) => item.template === 'compliance').length;
+  const controlCount = questionnaires.filter((item) => item.template === 'internal-control').length;
 
   return (
     <div className="bg-[#2e2e38] flex flex-col items-start w-full min-h-screen">
@@ -166,38 +346,16 @@ export default function DeficiencyTrackingPage() {
           </div>
 
           <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24] text-[32px]" style={{ fontWeight: 700 }}>
-            {selected ? '缺失題目' : '缺失追蹤'}
+            {selected ? (selected.template === 'compliance' ? '法令遵循自行評估表' : '內部控制制度自行查核表') : '缺失追蹤'}
           </p>
 
           {selected ? (
-            <div className="bg-white rounded-[8px] w-full overflow-clip">
-              <div className="flex items-center justify-between px-[24px] py-[20px] border-b border-[#ececf3]">
-                <div className="flex flex-col gap-[6px]">
-                  <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[20px] text-[#1a1a24]">{selected.process}</p>
-                  <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] text-[#747480]">
-                    {selected.responsibleUnit}／{selected.unit}　缺失 {selected.questions.length} 題
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => onNavigate('deficiency-tracking')}
-                  className="bg-[#f6f6fa] border-none rounded-[4px] px-[16px] py-[10px] cursor-pointer"
-                >
-                  <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[15px] text-[#1a1a24]">返回列表</p>
-                </button>
-              </div>
-              <div className="px-[16px] py-[16px] flex flex-col gap-[16px]">
-                {selected.questions.map((item, index) => (
-                  <div key={item.question} className="border border-[#ececf3] rounded-[8px] p-[16px] flex flex-col gap-[8px]">
-                    <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[16px] text-[#1a1a24]">
-                      {index + 1}. {item.question}
-                    </p>
-                    <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] text-[#ec5242]">自行評估結果：{item.result}</p>
-                    <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] text-[#222]">審核說明：{item.comment}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <DeficiencyForm
+              item={selected}
+              onBack={() => onNavigate('deficiency-tracking')}
+              onChange={updateQuestion}
+              onSubmit={resubmit}
+            />
           ) : (
             <div className="bg-white rounded-[8px] w-full overflow-clip">
               <div className="bg-[#f6f6fa] flex items-start w-full">

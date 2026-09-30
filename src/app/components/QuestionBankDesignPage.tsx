@@ -76,25 +76,26 @@ function QuestionPreview({
 }) {
   const reference = template === 'compliance' ? row.externalRule : (category.internalRule || row.externalRule);
   const referenceLabel = template === 'compliance' ? '應遵循之法令規章' : '自查依據';
-  const procedureLabel = template === 'compliance' ? '遵循程序' : '控制描述';
-  const questionLabel = template === 'compliance' ? '自行評估程序' : '自行查核程序';
+  const title = template === 'compliance' ? row.controlMeasure : row.question;
 
   return (
     <div className="flex flex-col gap-[10px] w-full">
+      <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[16px] leading-[23px] text-[#1a1a24] whitespace-pre-wrap" style={{ fontWeight: 700 }}>
+        {no}. {title}
+      </p>
       <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] leading-[22px] text-[#747480]">
         {referenceLabel}：{reference}
       </p>
       {template === 'internal-control' && (
-        <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] leading-[22px] text-[#747480]">
-          作業風險事件描述：{row.operationalRisk}（{RISK_LABEL[row.inherentRisk]}）
-        </p>
+        <>
+          <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] leading-[22px] text-[#747480]">
+            作業風險事件描述：{row.operationalRisk}（{RISK_LABEL[row.inherentRisk]}）
+          </p>
+          <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] leading-[23px] text-[#2e2e38] whitespace-pre-wrap">
+            控制描述：{row.controlMeasure}
+          </p>
+        </>
       )}
-      <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] leading-[23px] text-[#2e2e38] whitespace-pre-wrap">
-        {procedureLabel}：{row.controlMeasure}
-      </p>
-      <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[16px] leading-[23px] text-[#1a1a24]" style={{ fontWeight: 700 }}>
-        {no}. {questionLabel}：{row.question}
-      </p>
       <AnswerChoices options={getAnswerOptions(template, row.id)} />
       <div className="bg-[#f6f6fa] relative rounded-[8px] h-[72px] w-full">
         <p className="p-[12px] font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] text-[#99A1AF]">
@@ -390,7 +391,7 @@ export default function QuestionBankDesignPage() {
                           className="size-[18px] mt-[2px] shrink-0 accent-[#1a1a24] cursor-pointer"
                         />
                         <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] leading-[22px] ${isDarkMode ? 'text-white' : 'text-[#2e2e38]'}`}>
-                          {row.question}
+                          {template === 'compliance' ? row.controlMeasure : row.question}
                         </p>
                       </label>
                     ))}

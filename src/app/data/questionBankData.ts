@@ -49,8 +49,7 @@ export const COMPLIANCE_QUESTION_BANK: QuestionBankCategory[] = [
         id: 'comp-1-2',
         externalRule: '銀行法第33-1條',
         operationalRisk: '授信人員對於銀行法第33-1條中規定利害關係者經手之授信案件，未予迴避，恐有利害衝突之風險。',
-        controlMeasure:
-          '1.授信人員對於利害關係人之授信案件應予以迴避，改由職務代理人代為執行職務。\n2.對營業單位主管應迴避核定授權案件，由其職務代理人核轉總行核定。',
+        controlMeasure: '授信人員對於利害關係人之授信案件應予以迴避，改由職務代理人代為執行職務；營業單位主管應迴避核定授權案件，由其職務代理人核轉總行核定。',
         question: '各級授信人員就其所辦理有利害關係之授信案件時應予迴避，改由職務代理人代為執行職務。',
         inherentRisk: 'medium',
         frequency: '每半年',

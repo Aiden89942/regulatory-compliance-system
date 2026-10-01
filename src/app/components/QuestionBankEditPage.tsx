@@ -170,6 +170,7 @@ interface FormState {
   selfAssessmentUnits: string[];
   internalRule: string;
   regulation: string;
+  title: string;
   followProcedure: string;
   assessmentProcedure: string;
   processCategory: string;
@@ -194,6 +195,7 @@ function emptyState(): FormState {
     selfAssessmentUnits: [],
     internalRule: '',
     regulation: '',
+    title: '',
     followProcedure: '',
     assessmentProcedure: '',
     processCategory: '',
@@ -236,6 +238,7 @@ function buildState(template: QuestionTemplate, rowId: string, isNew: boolean): 
     selfAssessmentUnits: matchSelfAssessmentUnits(category.department),
     internalRule: category.internalRule,
     regulation: row.externalRule,
+    title: row.title,
     followProcedure: row.controlMeasure,
     assessmentProcedure: row.question,
     processCategory: category.riskCategory,
@@ -394,6 +397,7 @@ export default function QuestionBankEditPage() {
       externalRule,
       operationalRisk: template === 'compliance' ? (existing?.row.operationalRisk || '') : form.riskEvent,
       controlMeasure: template === 'compliance' ? form.followProcedure : form.controlDesc,
+      title: form.title,
       question: template === 'compliance' ? (form.assessmentProcedure || existing?.row.question || '') : form.checkProcedure,
       inherentRisk: template === 'compliance' ? (existing?.row.inherentRisk || 'none') : form.inherentRisk,
       frequency: existing?.row.frequency || '',
@@ -578,6 +582,7 @@ export default function QuestionBankEditPage() {
                 {template === 'compliance' ? (
                   <div className="flex flex-col gap-[16px] items-start w-full">
                     <SectionTitle text="法遵自評／法遵自查" />
+                    <TextField label="標題" value={form.title} onChange={(v) => setField('title', v)} placeholder="題庫列表與設計自評表顯示的短標題" />
                     <AreaField label="應遵循之法令規章" value={form.regulation} onChange={(v) => setField('regulation', v)} placeholder="請輸入應遵循之法令規章" />
                     <AreaField label="遵循程序" value={form.followProcedure} onChange={(v) => setField('followProcedure', v)} placeholder="對應原查核項目內規要求；相同控制措施先調和文字，不同則分別列題" />
                     <FixedSingleChoice label="自行評估程序" options={COMPLIANCE_ANSWER_OPTIONS} />
@@ -586,6 +591,7 @@ export default function QuestionBankEditPage() {
                   <>
                     <div className="flex flex-col gap-[16px] items-start w-full">
                       <SectionTitle text="內控自查" />
+                      <TextField label="標題" value={form.title} onChange={(v) => setField('title', v)} placeholder="題庫列表與設計自評表顯示的短標題" />
                       <AreaField label="自查依據" value={form.checkBasis} onChange={(v) => setField('checkBasis', v)} placeholder="對應原自行查核依據" />
                       <AreaField label="自行查核程序" value={form.checkProcedure} onChange={(v) => setField('checkProcedure', v)} placeholder="對應原自行查核項目" />
                       <div className="flex flex-col gap-[8px] items-start w-full">

@@ -4,6 +4,7 @@ import Header from './Header';
 import Footer from './Footer';
 import Breadcrumb from './Breadcrumb';
 import { useAppContext, useAppNavigate } from '../context/AppContext';
+import { QuestionnaireStatusBadge } from './QuestionBankDraftPage';
 import {
   findQuestionRow,
   getAnswerOptions,
@@ -294,7 +295,7 @@ export function QuestionnaireWorkPanel() {
                             <td className="px-[16px] py-[18px] font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] text-[#222]">{item.process || item.title}</td>
                             <td className="px-[16px] py-[18px] font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] text-[#222]">{item.responsibleUnit || '—'}</td>
                             <td className="px-[16px] py-[18px] font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] text-[#222]">{formatSelfAssessmentUnits(item.selfAssessmentUnits)}</td>
-                            <td className="px-[16px] py-[18px] font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] text-[#222]">{item.status}</td>
+                            <td className="px-[16px] py-[18px]"><QuestionnaireStatusBadge status={item.status} /></td>
                             <td className="px-[16px] py-[18px]">
                               <div className="flex gap-[12px] items-center">
                                 <button

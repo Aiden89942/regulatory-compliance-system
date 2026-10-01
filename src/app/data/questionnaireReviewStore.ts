@@ -209,7 +209,10 @@ export function matchResponsibleUnit(value: string): string {
 }
 
 export function matchSelfAssessmentUnits(department: string): string[] {
-  return (ASSESSMENT_DEPARTMENTS as readonly string[]).includes(department) ? [department] : [];
+  if (!department || department === '—') return [];
+  if (department === ALL_DEPARTMENTS_LABEL) return [...ASSESSMENT_DEPARTMENTS];
+  const parts = department.split('、').map((part) => part.trim()).filter(Boolean);
+  return parts.filter((part) => (ASSESSMENT_DEPARTMENTS as readonly string[]).includes(part));
 }
 
 export function formatSelfAssessmentUnits(units: string[]): string {

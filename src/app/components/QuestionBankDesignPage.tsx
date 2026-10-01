@@ -76,12 +76,15 @@ function QuestionPreview({
 }) {
   const reference = template === 'compliance' ? row.externalRule : (category.internalRule || row.externalRule);
   const referenceLabel = template === 'compliance' ? '應遵循之法令規章' : '自查依據';
-  const title = template === 'compliance' ? row.controlMeasure : row.question;
+  const title = row.title || (template === 'compliance' ? row.controlMeasure : row.question);
 
   return (
     <div className="flex flex-col gap-[10px] w-full">
       <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[16px] leading-[23px] text-[#1a1a24] whitespace-pre-wrap" style={{ fontWeight: 700 }}>
         {no}. {title}
+      </p>
+      <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] leading-[23px] text-[#2e2e38] whitespace-pre-wrap">
+        {template === 'compliance' ? `遵循程序：${row.controlMeasure}` : `自行查核程序：${row.question}`}
       </p>
       <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] leading-[22px] text-[#747480]">
         {referenceLabel}：{reference}
@@ -125,7 +128,7 @@ export default function QuestionBankDesignPage() {
 
   const categories = useMemo(() => getQuestionBankByTemplate(template), [template]);
   const selfAssessmentOptions = useMemo(
-    () => [...new Set(categories.map((category) => category.department).filter(Boolean))],
+    () => [...new Set(categories.flatMap((category) => category.department.split('、').map((unit) => unit.trim())).filter(Boolean))],
     [categories],
   );
   const responsibleOptions = useMemo(
@@ -134,7 +137,7 @@ export default function QuestionBankDesignPage() {
   );
   const visibleCategories = useMemo(
     () => categories.filter((category) => {
-      if (selfAssessmentFilter && category.department !== selfAssessmentFilter) return false;
+      if (selfAssessmentFilter && !category.department.split('、').map((unit) => unit.trim()).includes(selfAssessmentFilter)) return false;
       if (responsibleFilter && category.responsibleUnit !== responsibleFilter) return false;
       return true;
     }),
@@ -188,7 +191,7 @@ export default function QuestionBankDesignPage() {
   const buildDraft = () => {
     const processes = [...new Set(previewGroups.map((group) => group.category.process))];
     const responsibleUnits = [...new Set(previewGroups.map((group) => group.category.responsibleUnit))];
-    const departments = [...new Set(previewGroups.map((group) => group.category.department))];
+    const departments = [...new Set(previewGroups.flatMap((group) => group.category.department.split('、').map((unit) => unit.trim()).filter(Boolean)))];
     const rules = [...new Set(previewGroups.map((group) => group.category.internalRule))];
     const id = draftId || `draft-${Date.now()}`;
     return {
@@ -391,7 +394,7 @@ export default function QuestionBankDesignPage() {
                           className="size-[18px] mt-[2px] shrink-0 accent-[#1a1a24] cursor-pointer"
                         />
                         <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] leading-[22px] ${isDarkMode ? 'text-white' : 'text-[#2e2e38]'}`}>
-                          {template === 'compliance' ? row.controlMeasure : row.question}
+                          {row.title}
                         </p>
                       </label>
                     ))}

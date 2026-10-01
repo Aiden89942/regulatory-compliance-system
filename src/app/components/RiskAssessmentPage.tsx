@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import Header from './Header';
 import Footer from './Footer';
+import { getQuestionBankByTemplate } from '../data/questionBankData';
 import svgPaths from '../../imports/svg-vd3txnfj0u';
 import svgPaths2 from '../../imports/svg-azvftqyjok';
 
@@ -20,25 +21,15 @@ interface AssessmentItem {
   statusType: 'waiting' | 'replied' | 'overdue' | 'draft' | 'sent';
   deadline: string;
   actionType: 'viewOnly' | 'continueFill' | 'approved' | 'refill' | 'notifyVendor';
+  template?: 'compliance' | 'internal-control';
+  categoryId?: string;
 }
-
-interface YearSummary {
-  outsourcingHigh: number; outsourcingMedium: number; outsourcingLow: number;
-  outsourcingTrend: string; outsourcingTrendPositive: boolean;
-  supplierHigh: number; supplierMedium: number; supplierLow: number;
-  supplierTrend: string; supplierTrendPositive: boolean;
-}
-
-const YEAR_SUMMARY: Record<number, YearSummary> = {
-  2026: { outsourcingHigh: 4, outsourcingMedium: 2, outsourcingLow: 2, outsourcingTrend: '比去年降低 2 件高風險', outsourcingTrendPositive: true, supplierHigh: 7, supplierMedium: 2, supplierLow: 2, supplierTrend: '比去年新增 1 件高風險', supplierTrendPositive: false },
-  2025: { outsourcingHigh: 6, outsourcingMedium: 3, outsourcingLow: 1, outsourcingTrend: '比去年新增 3 件高風險', outsourcingTrendPositive: false, supplierHigh: 6, supplierMedium: 3, supplierLow: 3, supplierTrend: '比去年新增 2 件高風險', supplierTrendPositive: false },
-  2024: { outsourcingHigh: 3, outsourcingMedium: 2, outsourcingLow: 2, outsourcingTrend: '比去年降低 1 件高風險', outsourcingTrendPositive: true, supplierHigh: 4, supplierMedium: 2, supplierLow: 3, supplierTrend: '比去年持平', supplierTrendPositive: true },
-  2023: { outsourcingHigh: 4, outsourcingMedium: 1, outsourcingLow: 3, outsourcingTrend: '比去年新增 1 件高風險', outsourcingTrendPositive: false, supplierHigh: 4, supplierMedium: 3, supplierLow: 2, supplierTrend: '比去年降低 1 件高風險', supplierTrendPositive: true },
-  2022: { outsourcingHigh: 3, outsourcingMedium: 2, outsourcingLow: 2, outsourcingTrend: '首年度評估', outsourcingTrendPositive: true, supplierHigh: 5, supplierMedium: 2, supplierLow: 1, supplierTrend: '首年度評估', supplierTrendPositive: true },
-};
 
 const OUTSOURCING_BY_YEAR: Record<number, AssessmentItem[]> = {
   2026: [
+    { id: 'fill-comp-1', projectName: '授信審查', supplier: '授信管理部', risk: 'medium', status: '尚未完成填寫', statusType: 'draft', deadline: '2026.10.31', actionType: 'continueFill', template: 'compliance', categoryId: 'comp-1' },
+    { id: 'fill-comp-2', projectName: '存款開戶', supplier: '營業部', risk: 'high', status: '尚未完成填寫', statusType: 'draft', deadline: '2026.10.31', actionType: 'continueFill', template: 'compliance', categoryId: 'comp-2' },
+    { id: 'fill-comp-4', projectName: '理財商品銷售', supplier: '財富管理部', risk: 'medium', status: '尚未完成填寫', statusType: 'draft', deadline: '2026.11.15', actionType: 'continueFill', template: 'compliance', categoryId: 'comp-4' },
     { projectName: '授信審查流程', supplier: '風險管理部', risk: 'medium', status: '尚未完成填寫', statusType: 'draft', deadline: '2026.04.15', actionType: 'continueFill' },
     { projectName: '開戶作業流程', supplier: '個金業務部', risk: 'medium', status: '尚未完成填寫', statusType: 'draft', deadline: '2026.04.30', actionType: 'continueFill' },
     { projectName: '貸款核貸流程', supplier: '審查部', risk: 'low', status: '已送出等待批准', statusType: 'sent', deadline: '2026.03.31', actionType: 'approved' },
@@ -92,6 +83,9 @@ const OUTSOURCING_BY_YEAR: Record<number, AssessmentItem[]> = {
 
 const SUPPLIER_BY_YEAR: Record<number, AssessmentItem[]> = {
   2026: [
+    { id: 'fill-ic-1', projectName: '內部查核', supplier: '稽核處', risk: 'medium', status: '尚未完成填寫', statusType: 'draft', deadline: '2026.10.31', actionType: 'continueFill', template: 'internal-control', categoryId: 'ic-1' },
+    { id: 'fill-ic-2', projectName: '系統權限管理', supplier: '資訊部', risk: 'high', status: '尚未完成填寫', statusType: 'draft', deadline: '2026.10.31', actionType: 'continueFill', template: 'internal-control', categoryId: 'ic-2' },
+    { id: 'fill-ic-7', projectName: '人員異動', supplier: '人力資源部', risk: 'low', status: '尚未完成填寫', statusType: 'draft', deadline: '2026.11.15', actionType: 'continueFill', template: 'internal-control', categoryId: 'ic-7' },
     { projectName: '基金帳務升級流程', supplier: '信託部', risk: 'medium', status: '等待單位回覆', statusType: 'waiting', deadline: '2026.04.15', actionType: 'viewOnly' },
     { projectName: '門禁監控維護流程', supplier: '安全管理部', risk: 'medium', status: '等待單位回覆', statusType: 'waiting', deadline: '2026.04.30', actionType: 'viewOnly' },
     { projectName: '備份異地存放流程', supplier: '營運中心', risk: 'low', status: '單位已回覆', statusType: 'replied', deadline: '2026.03.31', actionType: 'approved' },
@@ -200,6 +194,7 @@ function ExpiringDetailModal({
   const title = type === 'outsourcing' ? '即將到期 — 法令遵循自行評估' : '即將到期 — 內部控制制度自行查核';
   const statusLabel = type === 'outsourcing' ? '已送出等待批准' : '等待單位回覆';
   const statusColor = type === 'outsourcing' ? '#EE762F' : '#2E7CF6';
+  const showRisk = type === 'supplier';
 
   const riskLabelMap: Record<string, { label: string; bg: string; text: string }> = {
     high: { label: '高風險', bg: '#ffe2e2', text: '#ec5242' },
@@ -270,9 +265,11 @@ function ExpiringDetailModal({
             <div className="flex items-center py-[12px] w-[180px] shrink-0">
               <span className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#747480] text-[13px] tracking-[0.39px]" style={{ fontWeight: 700 }}>部門</span>
             </div>
-            <div className="flex items-center justify-center py-[12px] w-[80px] shrink-0">
-              <span className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#747480] text-[13px] tracking-[0.39px]" style={{ fontWeight: 700 }}>風險等級</span>
-            </div>
+            {showRisk ? (
+              <div className="flex items-center justify-center py-[12px] w-[80px] shrink-0">
+                <span className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#747480] text-[13px] tracking-[0.39px]" style={{ fontWeight: 700 }}>風險等級</span>
+              </div>
+            ) : null}
             <div className="flex items-center justify-center py-[12px] w-[100px] shrink-0">
               <span className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#747480] text-[13px] tracking-[0.39px]" style={{ fontWeight: 700 }}>截止日期</span>
             </div>
@@ -291,9 +288,11 @@ function ExpiringDetailModal({
                 <div className="flex items-center py-[14px] w-[180px] shrink-0">
                   <span className="font-['EYInterstate:Regular',sans-serif] text-[#1a1a24] text-[14px] tracking-[0.42px] leading-[20px] overflow-hidden text-ellipsis whitespace-nowrap">{item.supplier}</span>
                 </div>
-                <div className="flex items-center justify-center py-[14px] w-[80px] shrink-0">
-                  <span className="rounded-[4px] px-[8px] py-[2px] text-[12px] whitespace-nowrap font-['EYInterstate:Regular',sans-serif]" style={{ backgroundColor: riskInfo.bg, color: riskInfo.text }}>{riskInfo.label}</span>
-                </div>
+                {showRisk ? (
+                  <div className="flex items-center justify-center py-[14px] w-[80px] shrink-0">
+                    <span className="rounded-[4px] px-[8px] py-[2px] text-[12px] whitespace-nowrap font-['EYInterstate:Regular',sans-serif]" style={{ backgroundColor: riskInfo.bg, color: riskInfo.text }}>{riskInfo.label}</span>
+                  </div>
+                ) : null}
                 <div className="flex items-center justify-center py-[14px] w-[100px] shrink-0">
                   <span className="font-['EYInterstate:Regular',sans-serif] text-[#1a1a24] text-[14px] tracking-[0.42px] whitespace-nowrap">{item.deadline}</span>
                 </div>
@@ -336,8 +335,8 @@ function ExpiringCard({ year, onNavigate }: { year: number; onNavigate?: (page: 
 
   return (
     <>
-      <div className="backdrop-blur-[42.5px] bg-white flex-[1_0_0] min-h-px min-w-px rounded-[8px]">
-        <div className="flex flex-col gap-[16px] items-start p-[24px] w-full">
+      <div className="backdrop-blur-[42.5px] bg-white flex-1 min-w-0 self-stretch rounded-[8px] flex flex-col">
+        <div className="flex flex-col gap-[16px] items-start p-[24px] w-full h-full">
           {/* Header: red alert icon + 即將到期 */}
           <div className="flex items-center w-full">
             <div className="flex gap-[12px] items-center">
@@ -427,24 +426,73 @@ function ExpiringCard({ year, onNavigate }: { year: number; onNavigate?: (page: 
   );
 }
 
+function openAssessmentItem(
+  item: AssessmentItem,
+  onNavigate?: (page: string, project?: string, query?: Record<string, string>) => void,
+) {
+  if (item.categoryId && item.template) {
+    onNavigate?.('self-assessment', item.projectName, { template: item.template, category: item.categoryId });
+    return;
+  }
+  onNavigate?.('risk-assessment-form', item.projectName);
+}
+
+function fillableItems(items: AssessmentItem[]) {
+  return items.filter((item) => item.actionType === 'continueFill' || item.actionType === 'refill');
+}
+
+function questionnaireCategory(item?: AssessmentItem) {
+  if (!item?.template || !item.categoryId) return undefined;
+  return getQuestionBankByTemplate(item.template).find((group) => group.id === item.categoryId);
+}
+
+function questionnaireRiskCounts(item?: AssessmentItem) {
+  const counts = { high: 0, medium: 0, low: 0 };
+  if (!item) return counts;
+  const category = questionnaireCategory(item);
+  if (category) {
+    category.rows.forEach((row) => {
+      if (row.inherentRisk === 'high' || row.inherentRisk === 'medium' || row.inherentRisk === 'low') {
+        counts[row.inherentRisk] += 1;
+      }
+    });
+    return counts;
+  }
+  if (item.risk !== 'none') counts[item.risk] = 1;
+  return counts;
+}
+
 // ==================== Summary Card (Middle & Right) ====================
-function SummaryCard({ type, year, onNavigate }: { type: 'outsourcing' | 'supplier'; year: number; onNavigate?: (page: string, project?: string, query?: Record<string, string>) => void }) {
+function SummaryCard({
+  type,
+  items,
+  index,
+  onIndexChange,
+  onNavigate,
+}: {
+  type: 'outsourcing' | 'supplier';
+  items: AssessmentItem[];
+  index: number;
+  onIndexChange: (next: number) => void;
+  onNavigate?: (page: string, project?: string, query?: Record<string, string>) => void;
+}) {
   const isOutsourcing = type === 'outsourcing';
   const iconBg = isOutsourcing ? '#ddffdf' : '#ffedd4';
   const iconColor = isOutsourcing ? '#419D48' : '#EE762F';
   const title = isOutsourcing ? '法令遵循自行評估 ' : '內部控制制度自行查核';
-  const buttonText = isOutsourcing ? '立即填寫' : '立即發送';
-  const summary = YEAR_SUMMARY[year] || YEAR_SUMMARY[2026];
-  const highRisk = isOutsourcing ? summary.outsourcingHigh : summary.supplierHigh;
-  const mediumRisk = isOutsourcing ? summary.outsourcingMedium : summary.supplierMedium;
-  const lowRisk = isOutsourcing ? summary.outsourcingLow : summary.supplierLow;
-  const trendText = isOutsourcing ? summary.outsourcingTrend : summary.supplierTrend;
-  const trendPositive = isOutsourcing ? summary.outsourcingTrendPositive : summary.supplierTrendPositive;
-  const trendColor = trendPositive ? '#419D48' : '#EE762F';
+  const currentIndex = items.length === 0 ? 0 : Math.min(index, items.length - 1);
+  const item = items[currentIndex];
+  const category = questionnaireCategory(item);
+  const riskCounts = questionnaireRiskCounts(item);
+  const riskSummary = [
+    { count: riskCounts.high, label: '高風險' },
+    { count: riskCounts.medium, label: '中風險' },
+    { count: riskCounts.low, label: '低風險' },
+  ];
 
   return (
-    <div className="backdrop-blur-[42.5px] bg-white flex-[1_0_0] min-h-px min-w-px rounded-[8px]">
-      <div className="flex flex-col gap-[16px] items-start p-[24px] w-full">
+    <div className="backdrop-blur-[42.5px] bg-white flex-1 min-w-0 self-stretch rounded-[8px] flex flex-col">
+      <div className="flex flex-col gap-[16px] items-start p-[24px] w-full h-full">
         {/* Header: icon + title + button */}
         <div className="flex items-center justify-between w-full">
           <div className="flex gap-[12px] items-center">
@@ -479,41 +527,69 @@ function SummaryCard({ type, year, onNavigate }: { type: 'outsourcing' | 'suppli
           {/* Black border button */}
           <button
             type="button"
-            onClick={() => {
-              if (isOutsourcing) {
-                onNavigate?.('risk-assessment-form');
-              } else {
-                onNavigate?.('risk-assessment-send');
-              }
-            }}
-            className="bg-white min-w-[80px] relative rounded-[4px] shrink-0 cursor-pointer border border-[#1a1a24] border-solid px-[12px] py-[8px] hover:bg-[#f6f6fa] transition-colors"
+            disabled={!item}
+            onClick={() => item && openAssessmentItem(item, onNavigate)}
+            className="bg-white min-w-[80px] relative rounded-[4px] shrink-0 cursor-pointer border border-[#1a1a24] border-solid px-[12px] py-[8px] hover:bg-[#f6f6fa] transition-colors disabled:cursor-not-allowed disabled:opacity-40"
           >
-            <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[23px] text-[#1a1a24] text-[15px] text-center tracking-[0.45px] whitespace-nowrap" style={{ fontVariationSettings: "'wght' 400" }}>{buttonText}</p>
+            <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[23px] text-[#1a1a24] text-[15px] text-center tracking-[0.45px] whitespace-nowrap" style={{ fontVariationSettings: "'wght' 400" }}>立即填寫</p>
           </button>
         </div>
-        {/* Risk counts */}
-        <div className="flex items-center justify-between w-full">
-          {[{ count: highRisk, label: '高風險' }, { count: mediumRisk, label: '中風險' }, { count: lowRisk, label: '低風險' }].map((item) => (
-            <div key={item.label} className="flex gap-[8px] items-end">
-              <p className="font-['EYInterstate:Bold',sans-serif] leading-[normal] text-[32px] whitespace-nowrap" style={{ color: iconColor }}>{item.count}</p>
+        <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[23px] text-[#4a5565] text-[16px] tracking-[0.48px]" style={{ fontVariationSettings: "'wght' 400" }}>
+          業務項目：{item?.projectName || '—'}
+        </p>
+        {isOutsourcing ? (
+          <div className="flex items-end justify-between w-full">
+            <div className="flex gap-[8px] items-end">
+              <p className="font-['EYInterstate:Bold',sans-serif] leading-[normal] text-[32px] whitespace-nowrap" style={{ color: iconColor }}>{category?.rows.length ?? 0}</p>
               <div className="flex flex-col items-center justify-center pb-[4px]">
-                <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[23px] text-[#4a5565] text-[16px] tracking-[0.48px] whitespace-nowrap" style={{ fontVariationSettings: "'wght' 400" }}>{item.label}</p>
+                <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[23px] text-[#4a5565] text-[16px] tracking-[0.48px] whitespace-nowrap" style={{ fontVariationSettings: "'wght' 400" }}>題</p>
               </div>
             </div>
-          ))}
-        </div>
-        {/* Trend */}
-        <div className="flex h-[33px] items-center pt-[17px] w-full relative">
-          <div className="absolute border-[#e5e7eb] border-solid border-t inset-0 pointer-events-none" />
-          <div className="flex gap-[8px] items-center">
-            <div className="shrink-0 size-[16px]">
-              <svg className="block size-full" fill="none" viewBox="0 0 16 16">
-                <path d={svgPaths.p86681a0} stroke={trendColor} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
-                <path d={svgPaths.p3d3f320} stroke={trendColor} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
-              </svg>
+            <div className="flex flex-col items-center justify-center pb-[4px]">
+              <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[23px] text-[#4a5565] text-[16px] tracking-[0.48px] whitespace-nowrap" style={{ fontVariationSettings: "'wght' 400" }}>
+                期限：{item?.deadline || '—'}
+              </p>
             </div>
-            <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[23px] text-[16px] tracking-[0.48px] whitespace-nowrap" style={{ color: trendColor, fontVariationSettings: "'wght' 400" }}>{trendText}</p>
           </div>
+        ) : (
+          <div className="flex items-center justify-between w-full">
+            {riskSummary.map((riskItem) => (
+              <div key={riskItem.label} className="flex gap-[8px] items-end">
+                <p className="font-['EYInterstate:Bold',sans-serif] leading-[normal] text-[32px] whitespace-nowrap" style={{ color: iconColor }}>{riskItem.count}</p>
+                <div className="flex flex-col items-center justify-center pb-[4px]">
+                  <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[23px] text-[#4a5565] text-[16px] tracking-[0.48px] whitespace-nowrap" style={{ fontVariationSettings: "'wght' 400" }}>{riskItem.label}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="flex items-center justify-between pt-[17px] mt-auto w-full relative">
+          <div className="absolute border-[#e5e7eb] border-solid border-t inset-0 pointer-events-none" />
+          <button
+            type="button"
+            aria-label="上一張問卷"
+            disabled={currentIndex <= 0}
+            onClick={() => onIndexChange(currentIndex - 1)}
+            className="bg-transparent border-none cursor-pointer p-0 disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            <svg className="size-[24px]" fill="none" viewBox="0 0 24 24">
+              <path d="M15 17L9 11L15 5" stroke="#1A1A24" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+            </svg>
+          </button>
+          <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[#747480] text-[14px]">
+            {items.length === 0 ? '沒有待填問卷' : `${currentIndex + 1} / ${items.length}`}
+          </p>
+          <button
+            type="button"
+            aria-label="下一張問卷"
+            disabled={currentIndex >= items.length - 1}
+            onClick={() => onIndexChange(currentIndex + 1)}
+            className="bg-transparent border-none cursor-pointer p-0 disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            <svg className="size-[24px]" fill="none" viewBox="0 0 24 24">
+              <path d="M9 17L15 11L9 5" stroke="#1A1A24" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+            </svg>
+          </button>
         </div>
       </div>
     </div>
@@ -665,7 +741,7 @@ function ActionButtons({ item, onNavigate, approvedRecords, onApprove, activeTab
     // Tab1: 草稿未送出 → 繼續填寫(yellow) 只有一個按鈕
     return (
       <div className="flex items-center justify-end w-full">
-        <button className="bg-[#ffe600] rounded-[4px] border-none cursor-pointer min-w-[80px] px-[12px] py-[8px]" onClick={() => onNavigate?.('risk-assessment-form', item.projectName)}>
+        <button className="bg-[#ffe600] rounded-[4px] border-none cursor-pointer min-w-[80px] px-[12px] py-[8px]" onClick={() => openAssessmentItem(item, onNavigate)}>
           <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[23px] text-[#1a1a24] text-[15px] text-center tracking-[0.45px] whitespace-nowrap">繼續填寫</p>
         </button>
       </div>
@@ -724,11 +800,15 @@ export default function RiskAssessmentPage({ onNavigate }: RiskAssessmentPagePro
   const [isYearDropdownOpen, setIsYearDropdownOpen] = useState(false);
   // 追踪已批准的记录 (使用 projectName 作为唯一标识)
   const [approvedRecords, setApprovedRecords] = useState<Set<string>>(new Set());
+  const [complianceCardIndex, setComplianceCardIndex] = useState(0);
+  const [controlCardIndex, setControlCardIndex] = useState(0);
 
   const years = [2026, 2025, 2024, 2023, 2022];
 
   const outsourcingData = OUTSOURCING_BY_YEAR[selectedYear] || [];
   const supplierData = SUPPLIER_BY_YEAR[selectedYear] || [];
+  const complianceFillable = fillableItems(outsourcingData);
+  const controlFillable = fillableItems(supplierData);
   const data = activeTab === 'outsourcing' ? outsourcingData : supplierData;
 
   // 处理批准按钮点击
@@ -813,7 +893,7 @@ export default function RiskAssessmentPage({ onNavigate }: RiskAssessmentPagePro
                         <button
                           key={year}
                           className={`block w-full px-[20px] py-[10px] text-left border-none cursor-pointer hover:bg-[#f6f6fa] transition-colors ${year === selectedYear ? 'bg-[#ffe600]' : 'bg-white'}`}
-                          onClick={() => { setSelectedYear(year); setIsYearDropdownOpen(false); setActiveFilter('all'); setSearchQuery(''); }}
+                          onClick={() => { setSelectedYear(year); setIsYearDropdownOpen(false); setActiveFilter('all'); setSearchQuery(''); setComplianceCardIndex(0); setControlCardIndex(0); }}
                         >
                           <p className="font-['EYInterstate:Regular',sans-serif] text-[#1a1a24] text-[16px] tracking-[0.48px] whitespace-nowrap">{year}</p>
                         </button>
@@ -825,10 +905,10 @@ export default function RiskAssessmentPage({ onNavigate }: RiskAssessmentPagePro
             </div>
 
             {/* Summary Cards - 3 cards layout matching Figma */}
-            <div className="flex gap-[32px] items-center w-full">
+            <div className="flex gap-[32px] items-stretch w-full">
               <ExpiringCard year={selectedYear} onNavigate={onNavigate} />
-              <SummaryCard type="outsourcing" year={selectedYear} onNavigate={onNavigate} />
-              <SummaryCard type="supplier" year={selectedYear} onNavigate={onNavigate} />
+              <SummaryCard type="outsourcing" items={complianceFillable} index={complianceCardIndex} onIndexChange={setComplianceCardIndex} onNavigate={onNavigate} />
+              <SummaryCard type="supplier" items={controlFillable} index={controlCardIndex} onIndexChange={setControlCardIndex} onNavigate={onNavigate} />
             </div>
           </div>
 
@@ -936,18 +1016,19 @@ export default function RiskAssessmentPage({ onNavigate }: RiskAssessmentPagePro
                       <TableDataCell key={i} text={item.supplier} />
                     ))}
                   </div>
-                  {/* Column: 風險 */}
-                  <div className="flex flex-col items-start w-[150px] shrink-0">
-                    <TableHeaderCell text="風險" />
-                    {filteredData.map((item, i) => (
-                      <div key={i} className="bg-white h-[63px] w-full relative">
-                        <div className="absolute border-[#d2dae6] border-b border-solid inset-0 pointer-events-none" />
-                        <div className="flex items-center px-[15px] py-[20px] h-full">
-                          <RiskBadge risk={item.risk} />
+                  {activeTab === 'supplier' ? (
+                    <div className="flex flex-col items-start w-[150px] shrink-0">
+                      <TableHeaderCell text="風險" />
+                      {filteredData.map((item, i) => (
+                        <div key={i} className="bg-white h-[63px] w-full relative">
+                          <div className="absolute border-[#d2dae6] border-b border-solid inset-0 pointer-events-none" />
+                          <div className="flex items-center px-[15px] py-[20px] h-full">
+                            <RiskBadge risk={item.risk} />
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : null}
                   {/* Column: 狀態 */}
                   <div className="flex flex-col items-start w-[177px] shrink-0">
                     <TableHeaderCell text="狀態" />

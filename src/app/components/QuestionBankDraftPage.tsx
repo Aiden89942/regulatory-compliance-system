@@ -4,7 +4,7 @@ import Header from './Header';
 import Footer from './Footer';
 import Breadcrumb from './Breadcrumb';
 import { useAppNavigate, useAppContext } from '../context/AppContext';
-import { getTemplateLabel } from '../data/questionBankData';
+import { QuestionTemplate } from '../data/questionBankData';
 import { formatSelfAssessmentUnits, ReviewStatus, submitQuestionnaireForReview, useQuestionnaireReviews } from '../data/questionnaireReviewStore';
 import { QuestionnaireDraft, saveQuestionnaireDraft, useQuestionnaireDrafts } from '../data/questionnaireDraftStore';
 
@@ -33,7 +33,7 @@ function draftStatus(draft: QuestionnaireDraft, reviews: { id: string; status: R
   return reviews.find((item) => item.id === draft.reviewId)?.status ?? '待審核';
 }
 
-function StatusBadge({ status }: { status: DraftStatus }) {
+export function QuestionnaireStatusBadge({ status }: { status: DraftStatus }) {
   const style = STATUS_STYLE[status];
   return (
     <div className="rounded-[4px] px-[8px] py-[4px] inline-flex w-fit items-center justify-center" style={{ backgroundColor: style.bg }}>
@@ -41,6 +41,11 @@ function StatusBadge({ status }: { status: DraftStatus }) {
     </div>
   );
 }
+
+const TEMPLATE_FILTERS: { value: QuestionTemplate; label: string }[] = [
+  { value: 'compliance', label: '法令遵循自行評估' },
+  { value: 'internal-control', label: '內部控制制度自行查核' },
+];
 
 export default function QuestionBankDraftPage() {
   const { isDarkMode } = useAppContext();
@@ -52,8 +57,10 @@ export default function QuestionBankDraftPage() {
   const [tab, setTab] = useState<DraftTab>(
     requestedTab === '已送審' || requestedTab === '已退回' || requestedTab === '已通過' ? requestedTab : '未送審',
   );
+  const [template, setTemplate] = useState<QuestionTemplate>('compliance');
   const rows = drafts.map((draft) => ({ draft, status: draftStatus(draft, reviews) }));
-  const visible = rows.filter((row) => inDraftTab(row.status, tab));
+  const tabRows = rows.filter((row) => inDraftTab(row.status, tab));
+  const visible = tabRows.filter((row) => row.draft.template === template);
 
   const submitDraft = (id: string) => {
     const draft = drafts.find((item) => item.id === id);
@@ -131,10 +138,28 @@ export default function QuestionBankDraftPage() {
                   );
                 })}
               </div>
+              <div className="flex gap-[12px] items-center px-[24px] py-[16px]">
+                {TEMPLATE_FILTERS.map(({ value, label }) => {
+                  const count = tabRows.filter((row) => row.draft.template === value).length;
+                  const active = template === value;
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setTemplate(value)}
+                      className={`border-none cursor-pointer px-[16px] py-[8px] rounded-[33554400px] ${active ? 'bg-[#ffe600]' : isDarkMode ? 'bg-[#353545]' : 'bg-[#ececf3]'}`}
+                    >
+                      <p className={`text-[16px] whitespace-nowrap ${active ? "font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24]" : `font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`}`}>
+                        {label} ({count})
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
               <table className="w-full border-collapse">
                 <thead>
                   <tr className={isDarkMode ? 'bg-[#1a1a24]' : 'bg-[#f6f6fa]'}>
-                    {['問卷類型', '業務項目', '負責單位', '自評單位', '題數', '狀態', '操作'].map((label) => (
+                    {['業務項目', '負責單位', '自評單位', '題數', '狀態', '操作'].map((label) => (
                       <th key={label} className={`border-b ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px] text-left`}>
                         <p className={`font-['EYInterstate:Bold',sans-serif] text-[14px] ${isDarkMode ? 'text-[#99A1AF]' : 'text-[#747480]'}`} style={{ fontWeight: 700 }}>{label}</p>
                       </th>
@@ -144,7 +169,7 @@ export default function QuestionBankDraftPage() {
                 <tbody>
                   {visible.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="p-[48px] text-center">
+                      <td colSpan={6} className="p-[48px] text-center">
                         <p className={`font-['EYInterstate:Regular',sans-serif] text-[16px] ${isDarkMode ? 'text-[#747480]' : 'text-[#99A1AF]'}`}>此分類尚無問卷。</p>
                       </td>
                     </tr>
@@ -152,9 +177,6 @@ export default function QuestionBankDraftPage() {
                     const canEdit = status === '草稿' || status === '已退回';
                     return (
                     <tr key={draft.id} className={isDarkMode ? 'hover:bg-[#353545]' : 'hover:bg-[#fafafd]'}>
-                      <td className={`border-b ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px]`}>
-                        <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`}>{getTemplateLabel(draft.template)}</p>
-                      </td>
                       <td className={`border-b ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px]`}>
                         <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] leading-[22px] ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`}>{draft.process}</p>
                       </td>
@@ -168,7 +190,7 @@ export default function QuestionBankDraftPage() {
                         <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`}>{draft.questionIds.length}</p>
                       </td>
                       <td className={`border-b ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px]`}>
-                        <StatusBadge status={status} />
+                        <QuestionnaireStatusBadge status={status} />
                       </td>
                       <td className={`border-b ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px]`}>
                         {canEdit ? (

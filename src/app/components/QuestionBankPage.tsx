@@ -71,6 +71,7 @@ function QuestionDetailModal({
           {!isCompliance ? <DetailLine label="流程類別" value={category.riskCategory} isDarkMode={isDarkMode} /> : null}
           <DetailLine label="業務項目" value={category.process} isDarkMode={isDarkMode} />
           <DetailLine label="負責單位" value={category.responsibleUnit} isDarkMode={isDarkMode} />
+          <DetailLine label="標題" value={row.title} isDarkMode={isDarkMode} />
           <DetailLine label="自評單位" value={category.department} isDarkMode={isDarkMode} />
           <DetailLine label="內部規章" value={category.internalRule} isDarkMode={isDarkMode} />
         </div>
@@ -135,7 +136,8 @@ export default function QuestionBankPage() {
     item.process.includes(searchQuery) ||
     item.department.includes(searchQuery) ||
     item.responsibleUnit.includes(searchQuery) ||
-    item.riskCategory.includes(searchQuery)
+    item.riskCategory.includes(searchQuery) ||
+    item.rows.some((row) => row.title.includes(searchQuery))
   );
 
   const handleEdit = (rowId: string) => {
@@ -262,11 +264,10 @@ export default function QuestionBankPage() {
                   <thead>
                     <tr className={`${isDarkMode ? 'bg-[#1a1a24]' : 'bg-[#f6f6fa]'} transition-colors`}>
                       {[
-                        { label: '業務項目', width: 'w-[16%]' },
-                        { label: '負責單位', width: 'w-[16%]' },
-                        { label: '自評單位', width: 'w-[16%]' },
-                        { label: '內部規章辦法', width: 'w-[16%]' },
-                        { label: template === 'compliance' ? '遵循程序' : '自行查核程序', width: '' },
+                        { label: '業務項目', width: 'w-[18%]' },
+                        { label: '負責單位', width: 'w-[18%]' },
+                        { label: '標題', width: '' },
+                        { label: '自評單位', width: 'w-[18%]' },
                       ].map((column) => (
                         <th key={column.label} className={`border-b border-r ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px] text-left ${column.width}`}>
                           <p className={`font-['EYInterstate:Bold',sans-serif] text-[14px] ${isDarkMode ? 'text-[#99A1AF]' : 'text-[#747480]'}`} style={{ fontWeight: 700 }}>{column.label}</p>
@@ -289,17 +290,11 @@ export default function QuestionBankPage() {
                           <tr key={row.id} className={`${isDarkMode ? 'hover:bg-[#353545]' : 'hover:bg-[#fafafd]'} transition-colors`}>
                             {rowIdx === 0 && (
                               <>
-                                <td rowSpan={category.rows.length} className={`border-b border-r ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px] align-top text-left w-[16%]`}>
+                                <td rowSpan={category.rows.length} className={`border-b border-r ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px] align-top text-left w-[18%]`}>
                                   <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] leading-[22px] break-words whitespace-normal ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`}>{category.process}</p>
                                 </td>
-                                <td rowSpan={category.rows.length} className={`border-b border-r ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px] align-top text-left w-[16%]`}>
+                                <td rowSpan={category.rows.length} className={`border-b border-r ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px] align-top text-left w-[18%]`}>
                                   <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] leading-[22px] break-words whitespace-normal ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`}>{category.responsibleUnit}</p>
-                                </td>
-                                <td rowSpan={category.rows.length} className={`border-b border-r ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px] align-top text-left w-[16%]`}>
-                                  <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] leading-[22px] break-words whitespace-normal ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`}>{category.department}</p>
-                                </td>
-                                <td rowSpan={category.rows.length} className={`border-b border-r ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px] align-top text-left w-[16%]`}>
-                                  <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] leading-[22px] break-words whitespace-normal ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`}>{category.internalRule}</p>
                                 </td>
                               </>
                             )}
@@ -309,9 +304,14 @@ export default function QuestionBankPage() {
                                 onClick={() => setDetail({ category, row })}
                                 className="bg-transparent border-none cursor-pointer p-0 text-left"
                               >
-                                <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] leading-[22px] break-words whitespace-normal underline ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`}>{template === 'compliance' ? row.controlMeasure : row.question}</p>
+                                <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] leading-[22px] break-words whitespace-normal underline ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`}>{row.title}</p>
                               </button>
                             </td>
+                            {rowIdx === 0 ? (
+                              <td rowSpan={category.rows.length} className={`border-b border-r ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px] align-top text-left w-[18%]`}>
+                                <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] leading-[22px] break-words whitespace-normal ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`}>{category.department}</p>
+                              </td>
+                            ) : null}
                             {template === 'internal-control' ? (
                               <td className={`border-b border-r ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px] align-top text-center`}>
                                 <RiskBadge risk={row.inherentRisk} />
@@ -333,7 +333,7 @@ export default function QuestionBankPage() {
                       </React.Fragment>
                     )) : (
                       <tr>
-                        <td colSpan={template === 'internal-control' ? 7 : 6} className="p-[48px] text-center">
+                        <td colSpan={template === 'internal-control' ? 6 : 5} className="p-[48px] text-center">
                           <p className={`font-['EYInterstate:Regular',sans-serif] text-[16px] ${isDarkMode ? 'text-[#747480]' : 'text-[#99A1AF]'}`}>查無相關題庫資料</p>
                         </td>
                       </tr>

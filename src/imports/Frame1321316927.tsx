@@ -9,6 +9,7 @@ import Frame1321316923 from "./Frame1321316923";
 import Header from "../app/components/Header";
 import Footer from "../app/components/Footer";
 import { QuestionnaireWorkPanel } from "../app/components/QuestionBankReviewPage";
+import { QuestionnaireDraftPanel } from "../app/components/QuestionBankDraftPage";
 import VendorRiskProgressTracking from "../app/components/VendorRiskProgressTracking";
 
 type Frame1321316927Props = {
@@ -2495,6 +2496,7 @@ export default function Frame1321316927({
           showFillTracking={showQuestionnaireOverview}
         />
         <QuestionnaireWorkPanel />
+        <QuestionnaireDraftPanel />
         {showQuestionnaireOverview ? (
           <Frame46
             selectedYear={selectedYear}

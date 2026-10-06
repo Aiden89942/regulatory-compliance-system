@@ -103,7 +103,7 @@ function QuestionnaireQuestion({
   );
 }
 
-function ReviewDetail({ item, onBack, allowSend }: { item: QuestionnaireReviewItem; onBack: () => void; allowSend: boolean }) {
+function ReviewDetail({ item, onBack, allowSend, readOnly = false }: { item: QuestionnaireReviewItem; onBack: () => void; allowSend: boolean; readOnly?: boolean }) {
   const content = findReviewQuestions(item);
   const formTitle = item.title || (item.template === 'compliance' ? '法令遵循自行評估表' : '內部控制制度自行查核表');
 
@@ -119,7 +119,7 @@ function ReviewDetail({ item, onBack, allowSend }: { item: QuestionnaireReviewIt
           </p>
         </div>
         <div className="flex gap-[8px] items-center">
-          {item.status === '待審核' || item.status === '已退回' ? (
+          {!readOnly && (item.status === '待審核' || item.status === '已退回') ? (
             <>
               <button
                 type="button"
@@ -217,6 +217,7 @@ function inReviewTab(status: QuestionnaireReviewItem['status'], tab: ReviewTab) 
 }
 
 function roleCanSee(role: string, status: QuestionnaireReviewItem['status']) {
+  if (role === 'maintainer') return true;
   if (role === 'reviewer') return status === '待審核' || status === '已退回' || status === '待發送' || status === '已發送';
   if (role === 'sender') return status === '待發送' || status === '已發送';
   return false;
@@ -354,23 +355,29 @@ export default function QuestionBankReviewPage() {
   const [searchParams] = useSearchParams();
   const reviews = useQuestionnaireReviews();
   const item = reviews.find((row) => row.id === searchParams.get('id') && roleCanSee(currentUser.role, row.status));
-  const pageTitle = currentUser.role === 'sender' ? '問卷發送' : '問卷審核';
+  const isMaintainer = currentUser.role === 'maintainer';
+  const pageTitle = isMaintainer ? '問卷內容' : currentUser.role === 'sender' ? '問卷發送' : '問卷審核';
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'bg-[#1a1a24]' : 'bg-[#2e2e38]'}`}>
-      <Header onNavigate={onNavigate} currentPage="home" />
+      <Header onNavigate={onNavigate} currentPage={isMaintainer ? 'question-bank' : 'home'} />
       <div className={`${isDarkMode ? 'bg-[#1a1a24]' : 'bg-[#ececf3]'} flex flex-col gap-[32px] items-center px-0 py-[32px] pt-[152px] w-full min-h-[calc(100vh-152px)]`}>
         <div className="w-full max-w-[1440px] px-[32px] flex flex-col gap-[24px]">
           <Breadcrumb
             isDarkMode={isDarkMode}
             onNavigate={onNavigate}
-            items={[
+            items={isMaintainer ? [
+              { text: '首頁', onClick: () => onNavigate('home') },
+              { text: '題庫維護', onClick: () => onNavigate('question-bank') },
+              { text: '問卷清單', onClick: () => onNavigate('question-bank-drafts') },
+              { text: pageTitle, isActive: true },
+            ] : [
               { text: '首頁', onClick: () => onNavigate('home') },
               { text: pageTitle, isActive: true },
             ]}
           />
           {item ? (
-            <ReviewDetail item={item} onBack={() => onNavigate('home')} allowSend={currentUser.role === 'sender'} />
+            <ReviewDetail item={item} onBack={() => onNavigate(isMaintainer ? 'question-bank-drafts' : 'home')} allowSend={currentUser.role === 'sender'} readOnly={isMaintainer} />
           ) : (
             <div className="bg-white rounded-[8px] px-[24px] py-[48px]">
               <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] text-[#747480]">找不到這份問卷。</p>

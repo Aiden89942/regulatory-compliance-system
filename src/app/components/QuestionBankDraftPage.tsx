@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useSearchParams } from 'react-router';
 import Header from './Header';
 import Footer from './Footer';
 import Breadcrumb from './Breadcrumb';
@@ -47,20 +46,13 @@ const TEMPLATE_FILTERS: { value: QuestionTemplate; label: string }[] = [
   { value: 'internal-control', label: '內部控制制度自行查核' },
 ];
 
-export default function QuestionBankDraftPage() {
-  const { isDarkMode } = useAppContext();
-  const onNavigate = useAppNavigate();
+type DraftRow = { draft: QuestionnaireDraft; status: DraftStatus };
+type NavigateFn = (page: string, project?: string, query?: Record<string, string>) => void;
+
+function useDraftRows() {
   const drafts = useQuestionnaireDrafts();
   const reviews = useQuestionnaireReviews();
-  const [searchParams] = useSearchParams();
-  const requestedTab = searchParams.get('tab');
-  const [tab, setTab] = useState<DraftTab>(
-    requestedTab === '已送審' || requestedTab === '已退回' || requestedTab === '已通過' ? requestedTab : '未送審',
-  );
-  const [template, setTemplate] = useState<QuestionTemplate>('compliance');
-  const rows = drafts.map((draft) => ({ draft, status: draftStatus(draft, reviews) }));
-  const tabRows = rows.filter((row) => inDraftTab(row.status, tab));
-  const visible = tabRows.filter((row) => row.draft.template === template);
+  const rows: DraftRow[] = drafts.map((draft) => ({ draft, status: draftStatus(draft, reviews) }));
 
   const submitDraft = (id: string) => {
     const draft = drafts.find((item) => item.id === id);
@@ -76,8 +68,172 @@ export default function QuestionBankDraftPage() {
       questionIds: draft.questionIds,
     });
     saveQuestionnaireDraft({ ...draft, reviewId });
-    setTab('已送審');
   };
+
+  return { rows, submitDraft };
+}
+
+function DraftTable({
+  visible,
+  isDarkMode,
+  onNavigate,
+  submitDraft,
+}: {
+  visible: DraftRow[];
+  isDarkMode: boolean;
+  onNavigate: NavigateFn;
+  submitDraft: (id: string) => void;
+}) {
+  return (
+      <table className="w-full border-collapse">
+        <thead>
+          <tr className={isDarkMode ? 'bg-[#1a1a24]' : 'bg-[#f6f6fa]'}>
+            {['業務項目', '負責單位', '自評單位', '題數', '狀態', '操作'].map((label) => (
+              <th key={label} className={`border-b ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px] text-left`}>
+                <p className={`font-['EYInterstate:Bold',sans-serif] text-[14px] ${isDarkMode ? 'text-[#99A1AF]' : 'text-[#747480]'}`} style={{ fontWeight: 700 }}>{label}</p>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {visible.length === 0 ? (
+            <tr>
+              <td colSpan={6} className="p-[48px] text-center">
+                <p className={`font-['EYInterstate:Regular',sans-serif] text-[16px] ${isDarkMode ? 'text-[#747480]' : 'text-[#99A1AF]'}`}>此分類尚無問卷。</p>
+              </td>
+            </tr>
+          ) : visible.map(({ draft, status }) => {
+            const canEdit = status === '草稿' || status === '已退回';
+            return (
+            <tr key={draft.id} className={isDarkMode ? 'hover:bg-[#353545]' : 'hover:bg-[#fafafd]'}>
+              <td className={`border-b ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px]`}>
+                <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] leading-[22px] ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`}>{draft.process}</p>
+              </td>
+              <td className={`border-b ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px]`}>
+                <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] leading-[22px] ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`}>{draft.responsibleUnit || '—'}</p>
+              </td>
+              <td className={`border-b ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px]`}>
+                <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] leading-[22px] ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`}>{formatSelfAssessmentUnits(draft.selfAssessmentUnits)}</p>
+              </td>
+              <td className={`border-b ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px]`}>
+                <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`}>{draft.questionIds.length}</p>
+              </td>
+              <td className={`border-b ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px]`}>
+                <QuestionnaireStatusBadge status={status} />
+              </td>
+              <td className={`border-b ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px]`}>
+                {canEdit ? (
+                  <div className="flex gap-[16px]">
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('question-bank-design', undefined, { template: draft.template, draft: draft.id })}
+                      className="bg-transparent border-none cursor-pointer p-0"
+                    >
+                      <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[15px] underline ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`}>繼續編輯</p>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => submitDraft(draft.id)}
+                      className="bg-transparent border-none cursor-pointer p-0"
+                    >
+                      <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[15px] underline ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`}>送審</p>
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => draft.reviewId && onNavigate('question-bank-review', undefined, { id: draft.reviewId })}
+                    className="bg-transparent border-none cursor-pointer p-0"
+                  >
+                    <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[15px] underline ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`}>查看</p>
+                  </button>
+                )}
+              </td>
+            </tr>
+            );
+          })}
+        </tbody>
+      </table>
+  );
+}
+
+function DesignButton({ onNavigate }: { onNavigate: NavigateFn }) {
+  return (
+    <button
+      type="button"
+      onClick={() => onNavigate('question-bank-design')}
+      className="bg-[#ffe600] border-none rounded-[8px] px-[20px] py-[12px] cursor-pointer hover:bg-[#ffd000] transition-colors"
+    >
+      <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24] text-[16px]" style={{ fontWeight: 700 }}>設計問卷</p>
+    </button>
+  );
+}
+
+/** 首頁（問卷維護角色）：以狀態為頁籤、題型為篩選 */
+export function QuestionnaireDraftPanel() {
+  const { isDarkMode, currentUser } = useAppContext();
+  const onNavigate = useAppNavigate();
+  const { rows, submitDraft } = useDraftRows();
+  const [tab, setTab] = useState<DraftTab>('未送審');
+  const [template, setTemplate] = useState<QuestionTemplate>('compliance');
+  const tabRows = rows.filter((row) => inDraftTab(row.status, tab));
+  const visible = tabRows.filter((row) => row.draft.template === template);
+
+  if (currentUser.role !== 'maintainer') return null;
+
+  return (
+    <div className="flex flex-col gap-[16px] w-[1360px]">
+      <p className={`font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[32px] tracking-[0.96px] ${isDarkMode ? 'text-white' : 'text-black'}`} style={{ fontWeight: 700 }}>
+        問卷清單
+      </p>
+      <div className={`${isDarkMode ? 'bg-[#2e2e38] border-[#474756]' : 'bg-white border-[#ececf3]'} rounded-[12px] overflow-hidden shadow-sm border w-full transition-colors`}>
+        <div className={`flex items-stretch w-full ${isDarkMode ? 'bg-[#1a1a24]' : 'bg-[#f6f6fa]'}`}>
+          {DRAFT_TABS.map((name) => {
+            const count = rows.filter((row) => inDraftTab(row.status, name)).length;
+            const active = tab === name;
+            return (
+              <button
+                key={name}
+                type="button"
+                onClick={() => setTab(name)}
+                className={`flex-1 border-none cursor-pointer flex gap-[6px] items-center justify-center px-[20px] ${active ? 'bg-[#ffe600] py-[16px]' : 'bg-transparent py-[12px]'}`}
+              >
+                <p className={`text-[20px] whitespace-nowrap ${active ? "font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24]" : "font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[#747480]"}`}>{name}</p>
+                <p className={`text-[24px] ${active ? "font-['EYInterstate:Bold',sans-serif] text-[#1a1a24]" : "font-['EYInterstate:Regular',sans-serif] text-[#747480]"}`}>{count}</p>
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex gap-[12px] items-center px-[24px] py-[16px]">
+          {TEMPLATE_FILTERS.map(({ value, label }) => {
+            const count = tabRows.filter((row) => row.draft.template === value).length;
+            const active = template === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setTemplate(value)}
+                className={`border-none cursor-pointer px-[16px] py-[8px] rounded-[33554400px] ${active ? 'bg-[#ffe600]' : isDarkMode ? 'bg-[#353545]' : 'bg-[#ececf3]'}`}
+              >
+                <p className={`text-[16px] whitespace-nowrap ${active ? "font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24]" : `font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`}`}>
+                  {label} ({count})
+                </p>
+              </button>
+            );
+          })}
+        </div>
+        <DraftTable visible={visible} isDarkMode={isDarkMode} onNavigate={onNavigate} submitDraft={(id) => { submitDraft(id); setTab('已送審'); }} />
+      </div>
+    </div>
+  );
+}
+
+export default function QuestionBankDraftPage() {
+  const { isDarkMode } = useAppContext();
+  const onNavigate = useAppNavigate();
+  const { rows, submitDraft } = useDraftRows();
+  const [template, setTemplate] = useState<QuestionTemplate>('compliance');
+  const visible = rows.filter((row) => row.draft.template === template);
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'bg-[#1a1a24]' : 'bg-[#2e2e38]'}`}>
@@ -106,119 +262,33 @@ export default function QuestionBankDraftPage() {
                   問卷清單
                 </h1>
                 <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] ${isDarkMode ? 'text-[#99A1AF]' : 'text-[#747480]'}`}>
-                  未送審可以繼續編輯或送審。送出後在已送審，退回後在已退回，通過後在已通過。
+                  依問卷類型查看所有問卷，並可由狀態欄位確認目前進度。
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => onNavigate('question-bank-design')}
-                className="bg-[#ffe600] border-none rounded-[8px] px-[20px] py-[12px] cursor-pointer hover:bg-[#ffd000] transition-colors"
-              >
-                <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24] text-[16px]" style={{ fontWeight: 700 }}>設計問卷</p>
-              </button>
+              <DesignButton onNavigate={onNavigate} />
             </div>
           </div>
 
           <div className="flex flex-col items-start pb-[32px] pt-0 px-[32px] relative shrink-0 w-full max-w-[1504px]">
             <div className={`${isDarkMode ? 'bg-[#2e2e38] border-[#474756]' : 'bg-white border-[#ececf3]'} rounded-[12px] overflow-hidden shadow-sm border w-full transition-colors`}>
               <div className={`flex items-stretch w-full ${isDarkMode ? 'bg-[#1a1a24]' : 'bg-[#f6f6fa]'}`}>
-                {DRAFT_TABS.map((name) => {
-                  const count = rows.filter((row) => inDraftTab(row.status, name)).length;
-                  const active = tab === name;
-                  return (
-                    <button
-                      key={name}
-                      type="button"
-                      onClick={() => setTab(name)}
-                      className={`flex-1 border-none cursor-pointer flex gap-[6px] items-center justify-center px-[20px] ${active ? 'bg-[#ffe600] py-[16px]' : 'bg-transparent py-[12px]'}`}
-                    >
-                      <p className={`text-[20px] whitespace-nowrap ${active ? "font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24]" : "font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[#747480]"}`}>{name}</p>
-                      <p className={`text-[24px] ${active ? "font-['EYInterstate:Bold',sans-serif] text-[#1a1a24]" : "font-['EYInterstate:Regular',sans-serif] text-[#747480]"}`}>{count}</p>
-                    </button>
-                  );
-                })}
-              </div>
-              <div className="flex gap-[12px] items-center px-[24px] py-[16px]">
                 {TEMPLATE_FILTERS.map(({ value, label }) => {
-                  const count = tabRows.filter((row) => row.draft.template === value).length;
+                  const count = rows.filter((row) => row.draft.template === value).length;
                   const active = template === value;
                   return (
                     <button
                       key={value}
                       type="button"
                       onClick={() => setTemplate(value)}
-                      className={`border-none cursor-pointer px-[16px] py-[8px] rounded-[33554400px] ${active ? 'bg-[#ffe600]' : isDarkMode ? 'bg-[#353545]' : 'bg-[#ececf3]'}`}
+                      className={`flex-1 border-none cursor-pointer flex gap-[6px] items-center justify-center px-[20px] ${active ? 'bg-[#ffe600] py-[16px]' : 'bg-transparent py-[12px]'}`}
                     >
-                      <p className={`text-[16px] whitespace-nowrap ${active ? "font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24]" : `font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`}`}>
-                        {label} ({count})
-                      </p>
+                      <p className={`text-[20px] whitespace-nowrap ${active ? "font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24]" : "font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[#747480]"}`}>{label}</p>
+                      <p className={`text-[24px] ${active ? "font-['EYInterstate:Bold',sans-serif] text-[#1a1a24]" : "font-['EYInterstate:Regular',sans-serif] text-[#747480]"}`}>{count}</p>
                     </button>
                   );
                 })}
               </div>
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className={isDarkMode ? 'bg-[#1a1a24]' : 'bg-[#f6f6fa]'}>
-                    {['業務項目', '負責單位', '自評單位', '題數', '狀態', '操作'].map((label) => (
-                      <th key={label} className={`border-b ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px] text-left`}>
-                        <p className={`font-['EYInterstate:Bold',sans-serif] text-[14px] ${isDarkMode ? 'text-[#99A1AF]' : 'text-[#747480]'}`} style={{ fontWeight: 700 }}>{label}</p>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {visible.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="p-[48px] text-center">
-                        <p className={`font-['EYInterstate:Regular',sans-serif] text-[16px] ${isDarkMode ? 'text-[#747480]' : 'text-[#99A1AF]'}`}>此分類尚無問卷。</p>
-                      </td>
-                    </tr>
-                  ) : visible.map(({ draft, status }) => {
-                    const canEdit = status === '草稿' || status === '已退回';
-                    return (
-                    <tr key={draft.id} className={isDarkMode ? 'hover:bg-[#353545]' : 'hover:bg-[#fafafd]'}>
-                      <td className={`border-b ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px]`}>
-                        <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] leading-[22px] ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`}>{draft.process}</p>
-                      </td>
-                      <td className={`border-b ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px]`}>
-                        <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] leading-[22px] ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`}>{draft.responsibleUnit || '—'}</p>
-                      </td>
-                      <td className={`border-b ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px]`}>
-                        <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] leading-[22px] ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`}>{formatSelfAssessmentUnits(draft.selfAssessmentUnits)}</p>
-                      </td>
-                      <td className={`border-b ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px]`}>
-                        <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`}>{draft.questionIds.length}</p>
-                      </td>
-                      <td className={`border-b ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px]`}>
-                        <QuestionnaireStatusBadge status={status} />
-                      </td>
-                      <td className={`border-b ${isDarkMode ? 'border-[#474756]' : 'border-[#ececf3]'} p-[16px]`}>
-                        {canEdit ? (
-                          <div className="flex gap-[16px]">
-                            <button
-                              type="button"
-                              onClick={() => onNavigate('question-bank-design', undefined, { template: draft.template, draft: draft.id })}
-                              className="bg-transparent border-none cursor-pointer p-0"
-                            >
-                              <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[15px] underline ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`}>繼續編輯</p>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => submitDraft(draft.id)}
-                              className="bg-transparent border-none cursor-pointer p-0"
-                            >
-                              <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[15px] underline ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`}>送審</p>
-                            </button>
-                          </div>
-                        ) : (
-                          <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] ${isDarkMode ? 'text-[#747480]' : 'text-[#99A1AF]'}`}>—</p>
-                        )}
-                      </td>
-                    </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+              <DraftTable visible={visible} isDarkMode={isDarkMode} onNavigate={onNavigate} submitDraft={submitDraft} />
             </div>
           </div>
         </div>

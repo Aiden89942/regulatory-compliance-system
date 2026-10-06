@@ -122,7 +122,7 @@ const ASSESSMENT_PAGES = ['risk-assessment', 'risk-assessment-form', 'risk-asses
 
 export const ROLE_PAGES: Record<UserRole, string[]> = {
   assessor: ['home', ...ASSESSMENT_PAGES, 'deficiency-tracking'],
-  maintainer: ['home', ...ASSESSMENT_PAGES, 'deficiency-tracking', 'question-bank', 'question-bank-edit', 'question-bank-design', 'question-bank-drafts'],
+  maintainer: ['home', ...ASSESSMENT_PAGES, 'deficiency-tracking', 'question-bank', 'question-bank-edit', 'question-bank-design', 'question-bank-drafts', 'question-bank-review'],
   reviewer: ['home', ...ASSESSMENT_PAGES, 'deficiency-tracking', 'question-bank-review'],
   sender: ['home', ...ASSESSMENT_PAGES, 'deficiency-tracking', 'question-bank-review'],
 };

@@ -790,12 +790,20 @@ function ActionButtons({ item, onNavigate, approvedRecords, onApprove, activeTab
   );
 }
 
+type StatusKey = 'draft' | 'sent' | 'approved' | 'overdue';
+const STATUS_TABS: { key: StatusKey; label: string }[] = [
+  { key: 'draft', label: '尚未完成填寫' },
+  { key: 'sent', label: '已送出等待批准' },
+  { key: 'approved', label: '已批准' },
+  { key: 'overdue', label: '已逾期' },
+];
+
 // ==================== Main Component ====================
 
 export default function RiskAssessmentPage({ onNavigate }: RiskAssessmentPageProps) {
   const [activeTab, setActiveTab] = useState<'outsourcing' | 'supplier'>('outsourcing');
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all');
+  const [activeFilter, setActiveFilter] = useState<StatusKey>('draft');
   const [selectedYear, setSelectedYear] = useState(2026);
   const [isYearDropdownOpen, setIsYearDropdownOpen] = useState(false);
   // 追踪已批准的记录 (使用 projectName 作为唯一标识)
@@ -816,46 +824,30 @@ export default function RiskAssessmentPage({ onNavigate }: RiskAssessmentPagePro
     setApprovedRecords(prev => new Set([...prev, projectName]));
   };
 
-  // Filter configurations per tab
-  const outsourcingFilters = [
-    { key: 'all', label: '全部', count: outsourcingData.length },
-    { key: 'draft', label: '尚未完成填寫', count: outsourcingData.filter(d => d.statusType === 'draft').length },
-    { key: 'sent', label: '已送出等待批准', count: outsourcingData.filter(d => d.statusType === 'sent' && !approvedRecords.has(d.projectName)).length },
-    { key: 'approved', label: '已批准', count: outsourcingData.filter(d => d.statusType === 'sent' && approvedRecords.has(d.projectName)).length },
-    { key: 'overdue', label: '已逾期', count: outsourcingData.filter(d => d.statusType === 'overdue').length },
-  ];
+  // 狀態頁籤（上層）：兩種題型共用；題型篩選（下層）在選定狀態內再分
+  const statusGroup = (d: AssessmentItem): StatusKey => {
+    if (d.statusType === 'draft') return 'draft';
+    if (d.statusType === 'overdue') return 'overdue';
+    return approvedRecords.has(d.projectName) && (d.statusType === 'sent' || d.statusType === 'replied') ? 'approved' : 'sent';
+  };
+  const allItems = [...outsourcingData, ...supplierData];
+  const filters = STATUS_TABS.map(({ key, label }) => ({
+    key,
+    label,
+    count: allItems.filter(d => statusGroup(d) === key).length,
+  }));
+  const inActiveStatus = (list: AssessmentItem[]) => list.filter(d => statusGroup(d) === activeFilter);
+  const templateCounts = {
+    outsourcing: inActiveStatus(outsourcingData).length,
+    supplier: inActiveStatus(supplierData).length,
+  };
 
-  const supplierFilters = [
-    { key: 'all', label: '全部', count: supplierData.length },
-    { key: 'draft', label: '尚未完成填寫', count: supplierData.filter(d => d.statusType === 'draft').length },
-    { key: 'waiting', label: '等待單位回覆', count: supplierData.filter(d => d.statusType === 'waiting').length },
-    { key: 'replied', label: '單位已回覆', count: supplierData.filter(d => d.statusType === 'replied' && !approvedRecords.has(d.projectName)).length },
-    { key: 'approved', label: '已批准', count: supplierData.filter(d => d.statusType === 'replied' && approvedRecords.has(d.projectName)).length },
-    { key: 'overdue', label: '已逾期', count: supplierData.filter(d => d.statusType === 'overdue').length },
-  ];
-
-  const filters = activeTab === 'outsourcing' ? outsourcingFilters : supplierFilters;
-
-  // Apply filters
-  let filteredData = data;
+  let filteredData = inActiveStatus(data);
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
     filteredData = filteredData.filter(d =>
       d.projectName.toLowerCase().includes(q) || d.supplier.toLowerCase().includes(q)
     );
-  }
-  if (activeFilter !== 'all') {
-    if (activeFilter === 'approved') {
-      // 已批准：statusType是sent/replied且在approvedRecords中
-      filteredData = filteredData.filter(d => 
-        (d.statusType === 'sent' || d.statusType === 'replied') && approvedRecords.has(d.projectName)
-      );
-    } else if (activeFilter === 'sent' || activeFilter === 'replied') {
-      // 已送出等待批准/單位已回覆：statusType匹配且不在approvedRecords中
-      filteredData = filteredData.filter(d => d.statusType === activeFilter && !approvedRecords.has(d.projectName));
-    } else {
-      filteredData = filteredData.filter(d => d.statusType === activeFilter);
-    }
   }
 
   return (
@@ -894,7 +886,7 @@ export default function RiskAssessmentPage({ onNavigate }: RiskAssessmentPagePro
                         <button
                           key={year}
                           className={`block w-full px-[20px] py-[10px] text-left border-none cursor-pointer hover:bg-[#f6f6fa] transition-colors ${year === selectedYear ? 'bg-[#ffe600]' : 'bg-white'}`}
-                          onClick={() => { setSelectedYear(year); setIsYearDropdownOpen(false); setActiveFilter('all'); setSearchQuery(''); setComplianceCardIndex(0); setControlCardIndex(0); }}
+                          onClick={() => { setSelectedYear(year); setIsYearDropdownOpen(false); setActiveFilter('draft'); setSearchQuery(''); setComplianceCardIndex(0); setControlCardIndex(0); }}
                         >
                           <p className="font-['EYInterstate:Regular',sans-serif] text-[#1a1a24] text-[16px] tracking-[0.48px] whitespace-nowrap">{year}</p>
                         </button>
@@ -972,14 +964,14 @@ export default function RiskAssessmentPage({ onNavigate }: RiskAssessmentPagePro
               <div className="flex items-center justify-between pb-[16px] px-[24px] w-full">
                 <div className="flex gap-[12px] items-center">
                   {([
-                    ['outsourcing', '法令遵循自行評估', outsourcingData.length],
-                    ['supplier', '內部控制制度自行查核', supplierData.length],
+                    ['outsourcing', '法令遵循自行評估', templateCounts.outsourcing],
+                    ['supplier', '內部控制制度自行查核', templateCounts.supplier],
                   ] as const).map(([key, label, count]) => {
                     const active = activeTab === key;
                     return (
                       <button
                         key={key}
-                        onClick={() => { setActiveTab(key); setActiveFilter('all'); }}
+                        onClick={() => setActiveTab(key)}
                         className={`border-none cursor-pointer px-[16px] py-[8px] rounded-[33554400px] ${active ? 'bg-[#ffe600]' : 'bg-[#ececf3]'}`}
                       >
                         <p className={`leading-[23px] text-[16px] text-center tracking-[0.48px] whitespace-nowrap ${active

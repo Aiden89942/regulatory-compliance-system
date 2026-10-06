@@ -8,7 +8,6 @@ import {
   QuestionBankCategory,
   QuestionBankRow,
   TEMPLATE_OPTIONS,
-  COMPLIANCE_ANSWER_OPTIONS,
   getAnswerOptions,
   getQuestionBankByTemplate,
   InherentRisk,
@@ -79,7 +78,7 @@ function QuestionDetailModal({
           <>
             <DetailLine label="應遵循之法令規章" value={row.externalRule} isDarkMode={isDarkMode} />
             <DetailLine label="遵循程序" value={row.controlMeasure} isDarkMode={isDarkMode} />
-            <DetailLine label="自行評估程序" value={COMPLIANCE_ANSWER_OPTIONS.join('、')} isDarkMode={isDarkMode} />
+            <DetailLine label="自行評估程序" value={getAnswerOptions(template, row.id).join('、')} isDarkMode={isDarkMode} />
           </>
         ) : (
           <>
@@ -177,13 +176,6 @@ export default function QuestionBankPage() {
                   className={`${isDarkMode ? 'bg-[#2e2e38] text-white' : 'bg-white text-[#1a1a24]'} border-none rounded-[8px] px-[20px] py-[12px] cursor-pointer`}
                 >
                   <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[16px]" style={{ fontWeight: 700 }}>問卷清單</p>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onNavigate('question-bank-design', undefined, { template })}
-                  className="bg-[#ffe600] border-none rounded-[8px] px-[20px] py-[12px] cursor-pointer hover:bg-[#ffd000] transition-colors"
-                >
-                  <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24] text-[16px]" style={{ fontWeight: 700 }}>設計自評表</p>
                 </button>
                 <button
                   type="button"

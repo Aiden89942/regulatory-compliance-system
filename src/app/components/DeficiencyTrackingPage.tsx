@@ -19,8 +19,12 @@ interface FlaggedQuestion {
   evidence: string;
 }
 
+type DeficiencyStatus = '待回填' | '已回填';
+const DEFICIENCY_TABS: DeficiencyStatus[] = ['待回填', '已回填'];
+
 interface FlaggedQuestionnaire {
   id: string;
+  status: DeficiencyStatus;
   template: QuestionTemplate;
   process: string;
   responsibleUnit: string;
@@ -38,6 +42,7 @@ const RISK_LABEL: Record<InherentRisk, string> = {
 const FLAGGED_QUESTIONNAIRES: FlaggedQuestionnaire[] = [
   {
     id: 'def-comp-1',
+    status: '待回填',
     template: 'compliance',
     process: '授信審查',
     responsibleUnit: '凱基銀行 - 風管部',
@@ -59,6 +64,7 @@ const FLAGGED_QUESTIONNAIRES: FlaggedQuestionnaire[] = [
   },
   {
     id: 'def-comp-2',
+    status: '待回填',
     template: 'compliance',
     process: '存款開戶',
     responsibleUnit: '凱基金控 - 資訊部',
@@ -74,6 +80,7 @@ const FLAGGED_QUESTIONNAIRES: FlaggedQuestionnaire[] = [
   },
   {
     id: 'def-comp-3',
+    status: '待回填',
     template: 'compliance',
     process: '資訊服務委外',
     responsibleUnit: '凱基銀行 - 資訊部',
@@ -95,6 +102,7 @@ const FLAGGED_QUESTIONNAIRES: FlaggedQuestionnaire[] = [
   },
   {
     id: 'def-ic-1',
+    status: '待回填',
     template: 'internal-control',
     process: '內部查核',
     responsibleUnit: '凱基銀行 - 法遵部',
@@ -110,6 +118,7 @@ const FLAGGED_QUESTIONNAIRES: FlaggedQuestionnaire[] = [
   },
   {
     id: 'def-ic-2',
+    status: '待回填',
     template: 'internal-control',
     process: '系統權限管理',
     responsibleUnit: '凱基銀行 - 資訊部',
@@ -168,13 +177,16 @@ function DeficiencyQuestion({
 }) {
   const reference = template === 'compliance' ? row.externalRule : (category?.internalRule || row.externalRule);
   const referenceLabel = template === 'compliance' ? '應遵循之法令規章' : '自查依據';
-  const title = template === 'compliance' ? row.controlMeasure : row.question;
+  const title = row.title || (template === 'compliance' ? row.controlMeasure : row.question);
   const evidenceLabel = template === 'compliance' ? '佐證文件或說明' : '佐證文件及說明';
 
   return (
     <div className="flex flex-col gap-[10px] w-full pb-[8px] border-b border-[#ececf3] last:border-b-0">
       <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[16px] leading-[23px] text-[#1a1a24] whitespace-pre-wrap" style={{ fontWeight: 700 }}>
         {no}. {title}
+      </p>
+      <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] leading-[23px] text-[#2e2e38] whitespace-pre-wrap">
+        {template === 'compliance' ? `遵循程序：${row.controlMeasure}` : `自行查核程序：${row.question}`}
       </p>
       <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] leading-[22px] text-[#747480]">
         {referenceLabel}：{reference}
@@ -240,9 +252,11 @@ function DeficiencyForm({
         <button type="button" onClick={onBack} className="bg-white border border-[#e5e7eb] rounded-[4px] px-[16px] py-[8px] cursor-pointer">
           <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] text-[#1a1a24]">返回列表</p>
         </button>
-        <button type="button" onClick={onSubmit} className="bg-[#ffe600] border-none rounded-[4px] px-[16px] py-[8px] cursor-pointer hover:bg-[#ffd000]">
-          <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[14px] text-[#1a1a24]" style={{ fontWeight: 700 }}>再次送出</p>
-        </button>
+        {item.status === '待回填' ? (
+          <button type="button" onClick={onSubmit} className="bg-[#ffe600] border-none rounded-[4px] px-[16px] py-[8px] cursor-pointer hover:bg-[#ffd000]">
+            <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[14px] text-[#1a1a24]" style={{ fontWeight: 700 }}>再次送出</p>
+          </button>
+        ) : null}
       </div>
       <div className="w-full">
         <div className="bg-[#747480] rounded-tl-[8px] rounded-tr-[8px] w-full">
@@ -292,6 +306,7 @@ export default function DeficiencyTrackingPage() {
   const onNavigate = useAppNavigate();
   const [searchParams] = useSearchParams();
   const [template, setTemplate] = useState<QuestionTemplate>('compliance');
+  const [tab, setTab] = useState<DeficiencyStatus>('待回填');
   const [searchQuery, setSearchQuery] = useState('');
   const [questionnaires, setQuestionnaires] = useState(FLAGGED_QUESTIONNAIRES);
   const selectedId = searchParams.get('id') || '';
@@ -309,20 +324,20 @@ export default function DeficiencyTrackingPage() {
 
   const resubmit = () => {
     if (!selected) return;
-    setQuestionnaires((current) => current.filter((item) => item.id !== selected.id));
+    setQuestionnaires((current) => current.map((item) => (item.id === selected.id ? { ...item, status: '已回填' } : item)));
+    setTab('已回填');
     onNavigate('deficiency-tracking');
   };
 
   const visible = useMemo(() => {
     const keyword = searchQuery.trim();
-    return questionnaires.filter((item) => item.template === template).filter((item) => {
+    return questionnaires.filter((item) => item.status === tab && item.template === template).filter((item) => {
       if (!keyword) return true;
       return item.process.includes(keyword) || item.responsibleUnit.includes(keyword) || item.unit.includes(keyword);
     });
-  }, [questionnaires, template, searchQuery]);
+  }, [questionnaires, tab, template, searchQuery]);
 
-  const complianceCount = questionnaires.filter((item) => item.template === 'compliance').length;
-  const controlCount = questionnaires.filter((item) => item.template === 'internal-control').length;
+  const tabItems = questionnaires.filter((item) => item.status === tab);
 
   return (
     <div className="bg-[#2e2e38] flex flex-col items-start w-full min-h-screen">
@@ -358,23 +373,42 @@ export default function DeficiencyTrackingPage() {
             />
           ) : (
             <div className="bg-white rounded-[8px] w-full overflow-clip">
-              <div className="bg-[#f6f6fa] flex items-start w-full">
-                <button
-                  type="button"
-                  className={`flex-1 border-none cursor-pointer flex gap-[6px] items-center justify-center px-[20px] py-[16px] ${template === 'compliance' ? 'bg-[#ffe600]' : 'bg-[#f6f6fa]'}`}
-                  onClick={() => { setTemplate('compliance'); setSearchQuery(''); }}
-                >
-                  <p className={`text-[20px] whitespace-nowrap ${template === 'compliance' ? "font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24]" : "font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[#747480]"}`}>法令遵循自行評估</p>
-                  <p className={`text-[24px] ${template === 'compliance' ? "font-['EYInterstate:Bold',sans-serif] text-[#1a1a24]" : "font-['EYInterstate:Regular',sans-serif] text-[#747480] text-[22px]"}`}>{complianceCount}</p>
-                </button>
-                <button
-                  type="button"
-                  className={`flex-1 border-none cursor-pointer flex gap-[6px] items-center justify-center px-[20px] py-[16px] ${template === 'internal-control' ? 'bg-[#ffe600]' : 'bg-[#f6f6fa]'}`}
-                  onClick={() => { setTemplate('internal-control'); setSearchQuery(''); }}
-                >
-                  <p className={`text-[20px] whitespace-nowrap ${template === 'internal-control' ? "font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24]" : "font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[#747480]"}`}>內部控制制度自行查核</p>
-                  <p className={`text-[24px] ${template === 'internal-control' ? "font-['EYInterstate:Bold',sans-serif] text-[#1a1a24]" : "font-['EYInterstate:Regular',sans-serif] text-[#747480] text-[22px]"}`}>{controlCount}</p>
-                </button>
+              <div className="bg-[#f6f6fa] flex items-stretch w-full">
+                {DEFICIENCY_TABS.map((name) => {
+                  const active = tab === name;
+                  return (
+                    <button
+                      key={name}
+                      type="button"
+                      className={`flex-1 border-none cursor-pointer flex gap-[6px] items-center justify-center px-[20px] ${active ? 'bg-[#ffe600] py-[16px]' : 'bg-transparent py-[12px]'}`}
+                      onClick={() => { setTab(name); setSearchQuery(''); }}
+                    >
+                      <p className={`text-[20px] whitespace-nowrap ${active ? "font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24]" : "font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[#747480]"}`}>{name}</p>
+                      <p className={`text-[24px] ${active ? "font-['EYInterstate:Bold',sans-serif] text-[#1a1a24]" : "font-['EYInterstate:Regular',sans-serif] text-[#747480] text-[22px]"}`}>{questionnaires.filter((item) => item.status === name).length}</p>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="flex gap-[12px] items-center px-[24px] py-[16px]">
+                {([
+                  ['compliance', '法令遵循自行評估'],
+                  ['internal-control', '內部控制制度自行查核'],
+                ] as const).map(([value, label]) => {
+                  const active = template === value;
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => { setTemplate(value); setSearchQuery(''); }}
+                      className={`border-none cursor-pointer px-[16px] py-[8px] rounded-[33554400px] ${active ? 'bg-[#ffe600]' : 'bg-[#ececf3]'}`}
+                    >
+                      <p className={`text-[16px] whitespace-nowrap text-[#1a1a24] ${active ? "font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif]" : "font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif]"}`}>
+                        {label} ({tabItems.filter((item) => item.template === value).length})
+                      </p>
+                    </button>
+                  );
+                })}
               </div>
 
               <div className="flex gap-[24px] items-center px-[32px] py-[16px]">

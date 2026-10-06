@@ -708,7 +708,7 @@ export function saveQuestionBankEntry(input: {
     if (input.department) category.department = input.department;
     if (input.responsibleUnit) category.responsibleUnit = input.responsibleUnit;
     if (input.internalRule) category.internalRule = input.internalRule;
-    if (input.checkOptions) setControlAnswerOptions(rowId, input.checkOptions);
+    if (input.checkOptions) setControlAnswerOptions(rowId, input.checkOptions, input.template);
     return rowId;
   }
 
@@ -731,7 +731,7 @@ export function saveQuestionBankEntry(input: {
       rows: [nextRow],
     });
   }
-  if (input.checkOptions) setControlAnswerOptions(rowId, input.checkOptions);
+  if (input.checkOptions) setControlAnswerOptions(rowId, input.checkOptions, input.template);
   return rowId;
 }
 
@@ -756,15 +756,18 @@ export const DEFAULT_CONTROL_ANSWER_OPTIONS = ['是', '否', 'N/A'];
 
 const controlAnswerOptions = new Map<string, string[]>();
 
-export function getAnswerOptions(template: QuestionTemplate, rowId: string): string[] {
-  if (template === 'compliance') return COMPLIANCE_ANSWER_OPTIONS;
-  const saved = controlAnswerOptions.get(rowId);
-  return saved ? [...saved] : [...DEFAULT_CONTROL_ANSWER_OPTIONS];
+export function getDefaultAnswerOptions(template: QuestionTemplate): string[] {
+  return [...(template === 'compliance' ? COMPLIANCE_ANSWER_OPTIONS : DEFAULT_CONTROL_ANSWER_OPTIONS)];
 }
 
-export function setControlAnswerOptions(rowId: string, options: string[]) {
+export function getAnswerOptions(template: QuestionTemplate, rowId: string): string[] {
+  const saved = controlAnswerOptions.get(rowId);
+  return saved ? [...saved] : getDefaultAnswerOptions(template);
+}
+
+export function setControlAnswerOptions(rowId: string, options: string[], template: QuestionTemplate = 'internal-control') {
   const next = options.map((option) => option.trim()).filter(Boolean);
-  controlAnswerOptions.set(rowId, next.length > 0 ? next : [...DEFAULT_CONTROL_ANSWER_OPTIONS]);
+  controlAnswerOptions.set(rowId, next.length > 0 ? next : getDefaultAnswerOptions(template));
 }
 
 /** 自評問卷題目（由題庫彙整） */

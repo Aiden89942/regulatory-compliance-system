@@ -531,7 +531,7 @@ function SummaryCard({
             onClick={() => item && openAssessmentItem(item, onNavigate)}
             className="bg-white min-w-[80px] relative rounded-[4px] shrink-0 cursor-pointer border border-[#1a1a24] border-solid px-[12px] py-[8px] hover:bg-[#f6f6fa] transition-colors disabled:cursor-not-allowed disabled:opacity-40"
           >
-            <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[23px] text-[#1a1a24] text-[15px] text-center tracking-[0.45px] whitespace-nowrap" style={{ fontVariationSettings: "'wght' 400" }}>立即填寫</p>
+            <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[23px] text-[#1a1a24] text-[15px] text-center tracking-[0.45px] whitespace-nowrap" style={{ fontVariationSettings: "'wght' 400" }}>開始自評</p>
           </button>
         </div>
         <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[23px] text-[#4a5565] text-[16px] tracking-[0.48px]" style={{ fontVariationSettings: "'wght' 400" }}>
@@ -738,11 +738,11 @@ function ActionButtons({ item, onNavigate, approvedRecords, onApprove, activeTab
     );
   }
   if (item.actionType === 'continueFill') {
-    // Tab1: 草稿未送出 → 繼續填寫(yellow) 只有一個按鈕
+    // Tab1: 草稿未送出 → 開始自評(yellow) 只有一個按鈕
     return (
       <div className="flex items-center justify-end w-full">
         <button className="bg-[#ffe600] rounded-[4px] border-none cursor-pointer min-w-[80px] px-[12px] py-[8px]" onClick={() => openAssessmentItem(item, onNavigate)}>
-          <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[23px] text-[#1a1a24] text-[15px] text-center tracking-[0.45px] whitespace-nowrap">繼續填寫</p>
+          <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[23px] text-[#1a1a24] text-[15px] text-center tracking-[0.45px] whitespace-nowrap">開始自評</p>
         </button>
       </div>
     );
@@ -771,11 +771,11 @@ function ActionButtons({ item, onNavigate, approvedRecords, onApprove, activeTab
     );
   }
   if (item.actionType === 'refill') {
-    // Tab1: 已逾期 → 重新填寫(yellow) 只有一個按鈕
+    // Tab1: 已逾期 → 重新自評(yellow) 只有一個按鈕
     return (
       <div className="flex items-center justify-end w-full">
         <button className="bg-[#ffe600] rounded-[4px] border-none cursor-pointer min-w-[80px] px-[12px] py-[8px]" onClick={() => onNavigate?.('risk-assessment-form', item.projectName)}>
-          <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[23px] text-[#1a1a24] text-[15px] text-center tracking-[0.45px] whitespace-nowrap">重新填寫</p>
+          <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[23px] text-[#1a1a24] text-[15px] text-center tracking-[0.45px] whitespace-nowrap">重新自評</p>
         </button>
       </div>
     );
@@ -819,14 +819,15 @@ export default function RiskAssessmentPage({ onNavigate }: RiskAssessmentPagePro
   // Filter configurations per tab
   const outsourcingFilters = [
     { key: 'all', label: '全部', count: outsourcingData.length },
+    { key: 'draft', label: '尚未完成填寫', count: outsourcingData.filter(d => d.statusType === 'draft').length },
     { key: 'sent', label: '已送出等待批准', count: outsourcingData.filter(d => d.statusType === 'sent' && !approvedRecords.has(d.projectName)).length },
     { key: 'approved', label: '已批准', count: outsourcingData.filter(d => d.statusType === 'sent' && approvedRecords.has(d.projectName)).length },
     { key: 'overdue', label: '已逾期', count: outsourcingData.filter(d => d.statusType === 'overdue').length },
-    { key: 'draft', label: '尚未完成填寫', count: outsourcingData.filter(d => d.statusType === 'draft').length },
   ];
 
   const supplierFilters = [
     { key: 'all', label: '全部', count: supplierData.length },
+    { key: 'draft', label: '尚未完成填寫', count: supplierData.filter(d => d.statusType === 'draft').length },
     { key: 'waiting', label: '等待單位回覆', count: supplierData.filter(d => d.statusType === 'waiting').length },
     { key: 'replied', label: '單位已回覆', count: supplierData.filter(d => d.statusType === 'replied' && !approvedRecords.has(d.projectName)).length },
     { key: 'approved', label: '已批准', count: supplierData.filter(d => d.statusType === 'replied' && approvedRecords.has(d.projectName)).length },
@@ -916,42 +917,31 @@ export default function RiskAssessmentPage({ onNavigate }: RiskAssessmentPagePro
           <div className="flex flex-col items-center pb-[24px] w-full">
             <div className="bg-white rounded-[8px] w-full overflow-clip">
 
-              {/* Tab Switcher */}
-              <div className="bg-[#f6f6fa] flex items-start overflow-clip w-full">
-                <button
-                  className={`flex-1 border-none cursor-pointer flex gap-[6px] items-center justify-center px-[20px] py-[16px] ${activeTab === 'outsourcing' ? 'bg-[#ffe600]' : 'bg-[#f6f6fa]'}`}
-                  onClick={() => { setActiveTab('outsourcing'); setActiveFilter('all'); }}
-                >
-                  <p className={`text-[20px] text-center whitespace-nowrap ${activeTab === 'outsourcing'
-                    ? "font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24] tracking-[0.6px]"
-                    : "font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[#747480]"
-                    }`} style={{ fontVariationSettings: activeTab === 'outsourcing' ? "'wght' 700" : "'wght' 400" }}>
-                    {`法令遵循自行評估 `}
-                  </p>
-                  <p className={`text-center whitespace-nowrap ${activeTab === 'outsourcing'
-                    ? "font-['EYInterstate:Bold',sans-serif] text-[#1a1a24] text-[24px]"
-                    : "font-['EYInterstate:Regular',sans-serif] text-[#747480] text-[22px]"
-                    }`} style={{ fontVariationSettings: activeTab === 'outsourcing' ? "'wght' 700" : "'wght' 400" }}>
-                    {outsourcingData.length}
-                  </p>
-                </button>
-                <button
-                  className={`flex-1 border-none cursor-pointer flex gap-[6px] items-center justify-center px-[20px] py-[16px] ${activeTab === 'supplier' ? 'bg-[#ffe600]' : 'bg-[#f6f6fa]'}`}
-                  onClick={() => { setActiveTab('supplier'); setActiveFilter('all'); }}
-                >
-                  <p className={`text-[20px] text-center whitespace-nowrap ${activeTab === 'supplier'
-                    ? "font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24] tracking-[0.6px]"
-                    : "font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[#747480]"
-                    }`} style={{ fontVariationSettings: activeTab === 'supplier' ? "'wght' 700" : "'wght' 400" }}>
-                    內部控制制度自行查核
-                  </p>
-                  <p className={`text-center whitespace-nowrap ${activeTab === 'supplier'
-                    ? "font-['EYInterstate:Bold',sans-serif] text-[#1a1a24] text-[24px]"
-                    : "font-['EYInterstate:Regular',sans-serif] text-[#747480] text-[22px]"
-                    }`} style={{ fontVariationSettings: activeTab === 'supplier' ? "'wght' 700" : "'wght' 400" }}>
-                    {supplierData.length}
-                  </p>
-                </button>
+              {/* Tab Switcher：以狀態為頁籤 */}
+              <div className="bg-[#f6f6fa] flex items-stretch overflow-clip w-full">
+                {filters.map((f) => {
+                  const active = activeFilter === f.key;
+                  return (
+                    <button
+                      key={f.key}
+                      className={`flex-1 border-none cursor-pointer flex gap-[6px] items-center justify-center px-[20px] ${active ? 'bg-[#ffe600] py-[16px]' : 'bg-[#f6f6fa] py-[12px]'}`}
+                      onClick={() => setActiveFilter(f.key)}
+                    >
+                      <p className={`text-[20px] text-center whitespace-nowrap ${active
+                        ? "font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24] tracking-[0.6px]"
+                        : "font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[#747480]"
+                        }`} style={{ fontVariationSettings: active ? "'wght' 700" : "'wght' 400" }}>
+                        {f.label}
+                      </p>
+                      <p className={`text-center whitespace-nowrap ${active
+                        ? "font-['EYInterstate:Bold',sans-serif] text-[#1a1a24] text-[24px]"
+                        : "font-['EYInterstate:Regular',sans-serif] text-[#747480] text-[22px]"
+                        }`} style={{ fontVariationSettings: active ? "'wght' 700" : "'wght' 400" }}>
+                        {f.count}
+                      </p>
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Search bar */}
@@ -978,25 +968,30 @@ export default function RiskAssessmentPage({ onNavigate }: RiskAssessmentPagePro
                 </p>
               </div>
 
-              {/* Filter pills + advanced search */}
+              {/* Filter pills：以題型為篩選 */}
               <div className="flex items-center justify-between pb-[16px] px-[24px] w-full">
                 <div className="flex gap-[12px] items-center">
-                  {filters.map((f) => (
-                    <button
-                      key={f.key}
-                      onClick={() => setActiveFilter(f.key)}
-                      className={`border-none cursor-pointer px-[16px] py-[8px] rounded-[33554400px] ${activeFilter === f.key ? 'bg-[#ffe600]' : 'bg-[#ececf3]'}`}
-                    >
-                      <p className={`leading-[23px] text-[16px] text-center tracking-[0.48px] whitespace-nowrap ${activeFilter === f.key
-                        ? "font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24]"
-                        : "font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[#1a1a24]"
-                        }`} style={{ fontWeight: activeFilter === f.key ? 700 : 400 }}>
-                        {f.key === 'all' ? `全部 (${f.count})` : `${f.label} (${f.count})`}
-                      </p>
-                    </button>
-                  ))}
+                  {([
+                    ['outsourcing', '法令遵循自行評估', outsourcingData.length],
+                    ['supplier', '內部控制制度自行查核', supplierData.length],
+                  ] as const).map(([key, label, count]) => {
+                    const active = activeTab === key;
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => { setActiveTab(key); setActiveFilter('all'); }}
+                        className={`border-none cursor-pointer px-[16px] py-[8px] rounded-[33554400px] ${active ? 'bg-[#ffe600]' : 'bg-[#ececf3]'}`}
+                      >
+                        <p className={`leading-[23px] text-[16px] text-center tracking-[0.48px] whitespace-nowrap ${active
+                          ? "font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24]"
+                          : "font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[#1a1a24]"
+                          }`} style={{ fontWeight: active ? 700 : 400 }}>
+                          {label} ({count})
+                        </p>
+                      </button>
+                    );
+                  })}
                 </div>
-
               </div>
 
               {/* Table */}

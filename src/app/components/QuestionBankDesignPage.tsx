@@ -257,7 +257,7 @@ export default function QuestionBankDesignPage() {
                   { text: '首頁', onClick: () => onNavigate('home') },
                   { text: '題庫維護', onClick: () => onNavigate('question-bank') },
                   { text: '問卷清單', onClick: () => onNavigate('question-bank-drafts') },
-                  { text: '設計自評表', isActive: true },
+                  { text: '設計問卷', isActive: true },
                 ]}
               />
             </div>
@@ -267,7 +267,7 @@ export default function QuestionBankDesignPage() {
             <div className="max-w-[1440px] mx-auto w-full flex items-center justify-between gap-[16px]">
               <div className="flex flex-col gap-[8px]">
                 <h1 className={`font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] leading-[normal] text-[32px] tracking-[0.96px] ${isDarkMode ? 'text-white' : 'text-black'}`} style={{ fontWeight: 700 }}>
-                  設計自評表
+                  設計問卷
                 </h1>
                 <p className={`font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] ${isDarkMode ? 'text-[#99A1AF]' : 'text-[#747480]'}`}>
                   一張自評表只使用一種模板。同一分類可以只拉其中一題。

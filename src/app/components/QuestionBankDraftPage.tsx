@@ -114,7 +114,7 @@ export default function QuestionBankDraftPage() {
                 onClick={() => onNavigate('question-bank-design')}
                 className="bg-[#ffe600] border-none rounded-[8px] px-[20px] py-[12px] cursor-pointer hover:bg-[#ffd000] transition-colors"
               >
-                <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24] text-[16px]" style={{ fontWeight: 700 }}>設計自評表</p>
+                <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24] text-[16px]" style={{ fontWeight: 700 }}>設計問卷</p>
               </button>
             </div>
           </div>

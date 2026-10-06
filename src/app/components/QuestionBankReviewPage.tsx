@@ -68,13 +68,16 @@ function QuestionnaireQuestion({
 }) {
   const reference = template === 'compliance' ? row.externalRule : (category?.internalRule || row.externalRule);
   const referenceLabel = template === 'compliance' ? '應遵循之法令規章' : '自查依據';
-  const title = template === 'compliance' ? row.controlMeasure : row.question;
+  const title = row.title || (template === 'compliance' ? row.controlMeasure : row.question);
   const choices = getAnswerOptions(template, row.id);
 
   return (
     <div className="flex flex-col gap-[10px] w-full pb-[8px] border-b border-[#ececf3] last:border-b-0">
       <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[16px] leading-[23px] text-[#1a1a24] whitespace-pre-wrap" style={{ fontWeight: 700 }}>
         {no}. {title}
+      </p>
+      <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] leading-[23px] text-[#2e2e38] whitespace-pre-wrap">
+        {template === 'compliance' ? `遵循程序：${row.controlMeasure}` : `自行查核程序：${row.question}`}
       </p>
       <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] leading-[22px] text-[#747480]">
         {referenceLabel}：{reference}
@@ -141,6 +144,15 @@ function ReviewDetail({ item, onBack, allowSend }: { item: QuestionnaireReviewIt
               className="bg-[#ffe600] border-none rounded-[4px] px-[12px] py-[8px] cursor-pointer hover:bg-[#ffd000]"
             >
               <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[14px] text-[#1a1a24]">發送</p>
+            </button>
+          ) : null}
+          {allowSend && item.status === '已發送' ? (
+            <button
+              type="button"
+              onClick={() => setQuestionnaireReviewStatus(item.id, '待發送')}
+              className="bg-[#f6f6fa] border-none rounded-[4px] px-[12px] py-[8px] cursor-pointer hover:bg-[#ececf3]"
+            >
+              <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] text-[#1a1a24]">取消發送</p>
             </button>
           ) : null}
           <button type="button" onClick={onBack} className="bg-white border border-[#e5e7eb] rounded-[4px] px-[16px] py-[8px] cursor-pointer">
@@ -312,6 +324,15 @@ export function QuestionnaireWorkPanel() {
                                     className="bg-[#ffe600] border-none rounded-[4px] px-[12px] py-[8px] cursor-pointer hover:bg-[#ffd000]"
                                   >
                                     <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[14px] text-[#1a1a24]">發送</p>
+                                  </button>
+                                ) : null}
+                                {role === 'sender' && item.status === '已發送' ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => setQuestionnaireReviewStatus(item.id, '待發送')}
+                                    className="bg-[#f6f6fa] border-none rounded-[4px] px-[12px] py-[8px] cursor-pointer hover:bg-[#ececf3]"
+                                  >
+                                    <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] text-[#1a1a24]">取消發送</p>
                                   </button>
                                 ) : null}
                               </div>

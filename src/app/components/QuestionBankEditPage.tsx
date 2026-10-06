@@ -7,8 +7,7 @@ import {
   QuestionTemplate,
   InherentRisk,
   TEMPLATE_OPTIONS,
-  COMPLIANCE_ANSWER_OPTIONS,
-  DEFAULT_CONTROL_ANSWER_OPTIONS,
+  getDefaultAnswerOptions,
   findQuestionRow,
   getAnswerOptions,
   getQuestionBankByTemplate,
@@ -131,25 +130,6 @@ function SelectField({
   );
 }
 
-function FixedSingleChoice({ label, options }: { label: string; options: string[] }) {
-  return (
-    <div className="flex flex-col gap-[8px] items-start shrink-0 w-full">
-      <FieldLabel text={label} />
-      <div className="bg-white relative rounded-[8px] w-full">
-        <div className="flex gap-[24px] items-center px-[12px] h-[48px] pointer-events-none select-none" aria-disabled="true">
-          {options.map((option) => (
-            <div key={option} className="flex gap-[8px] items-center">
-              <div className="size-[20px] rounded-full border border-[#c4c4cd] bg-white shrink-0" />
-              <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[23px] text-[#2e2e38] text-[16px] tracking-[0.48px]">{option}</p>
-            </div>
-          ))}
-        </div>
-        <div aria-hidden="true" className="absolute border border-[#ececf3] border-solid inset-0 pointer-events-none rounded-[8px]" />
-      </div>
-    </div>
-  );
-}
-
 function SectionTitle({ text }: { text: string }) {
   return (
     <p className="font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] leading-[normal] text-[#1a1a24] text-[20px] tracking-[0.6px]" style={{ fontVariationSettings: "'wght' 700" }}>
@@ -186,7 +166,7 @@ interface FormState {
   checkOptions: string[];
 }
 
-function emptyState(): FormState {
+function emptyState(template: QuestionTemplate): FormState {
   return {
     riskCategory: '',
     process: '',
@@ -208,7 +188,7 @@ function emptyState(): FormState {
     inherentRisk: 'medium',
     controlLevel: 'medium',
     residualRisk: 'low',
-    checkOptions: [...DEFAULT_CONTROL_ANSWER_OPTIONS],
+    checkOptions: getDefaultAnswerOptions(template),
   };
 }
 
@@ -224,7 +204,7 @@ function classOptions(template: QuestionTemplate, key: ClassFieldKey): string[] 
 }
 
 function buildState(template: QuestionTemplate, rowId: string, isNew: boolean): FormState {
-  if (isNew) return emptyState();
+  if (isNew) return emptyState(template);
 
   const found = findQuestionRow(template, rowId);
   const fallback = getQuestionBankByTemplate(template)[0];
@@ -251,7 +231,7 @@ function buildState(template: QuestionTemplate, rowId: string, isNew: boolean): 
     inherentRisk: row.inherentRisk,
     controlLevel: 'medium',
     residualRisk: row.inherentRisk === 'high' ? 'medium' : 'low',
-    checkOptions: getAnswerOptions('internal-control', row.id),
+    checkOptions: getAnswerOptions(template, row.id),
   };
 }
 
@@ -361,7 +341,7 @@ export default function QuestionBankEditPage() {
   const writeCheckOptions = (options: string[]) => {
     setSaved(false);
     setForm((prev) => ({ ...prev, checkOptions: options }));
-    if (rowId) setControlAnswerOptions(rowId, options);
+    if (rowId) setControlAnswerOptions(rowId, options, template);
   };
 
   const updateCheckOption = (index: number, value: string) => {
@@ -376,6 +356,39 @@ export default function QuestionBankEditPage() {
   const addCheckOption = () => {
     writeCheckOptions([...form.checkOptions, '']);
   };
+
+  const answerOptionsEditor = (
+        <div className="flex flex-col gap-[8px] items-start w-full">
+          <FieldLabel text={template === 'compliance' ? '自行評估程序（作答選項）' : '作答選項'} />
+          {form.checkOptions.map((option, index) => (
+            <div key={index} className="flex gap-[8px] items-center w-full">
+              <div className="bg-white relative rounded-[8px] h-[48px] flex-1 min-w-0">
+                <input
+                  value={option}
+                  onChange={(event) => updateCheckOption(index, event.target.value)}
+                  className="block h-[48px] w-full bg-transparent border-none outline-none px-[12px] font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] text-[#2e2e38]"
+                />
+                <div aria-hidden="true" className="absolute border border-[#ececf3] border-solid inset-0 pointer-events-none rounded-[8px]" />
+              </div>
+              <button
+                type="button"
+                onClick={() => removeCheckOption(index)}
+                disabled={form.checkOptions.length <= 1}
+                className="bg-[#f6f6fa] border-none rounded-[4px] px-[12px] h-[48px] cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] text-[#1a1a24]">移除</p>
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={addCheckOption}
+            className="bg-transparent border-none cursor-pointer p-0"
+          >
+            <p className="underline font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] text-[#1a1a24]">新增選項</p>
+          </button>
+        </div>
+  );
 
   const saveQuestion = () => {
     const existingId = savedRowId;
@@ -401,7 +414,7 @@ export default function QuestionBankEditPage() {
       question: template === 'compliance' ? (form.assessmentProcedure || existing?.row.question || '') : form.checkProcedure,
       inherentRisk: template === 'compliance' ? (existing?.row.inherentRisk || 'none') : form.inherentRisk,
       frequency: existing?.row.frequency || '',
-      checkOptions: template === 'internal-control' ? form.checkOptions : undefined,
+      checkOptions: form.checkOptions,
     });
     setSavedRowId(id);
     setSaved(true);
@@ -585,7 +598,7 @@ export default function QuestionBankEditPage() {
                     <TextField label="標題" value={form.title} onChange={(v) => setField('title', v)} placeholder="題庫列表與設計自評表顯示的短標題" />
                     <AreaField label="應遵循之法令規章" value={form.regulation} onChange={(v) => setField('regulation', v)} placeholder="請輸入應遵循之法令規章" />
                     <AreaField label="遵循程序" value={form.followProcedure} onChange={(v) => setField('followProcedure', v)} placeholder="對應原查核項目內規要求；相同控制措施先調和文字，不同則分別列題" />
-                    <FixedSingleChoice label="自行評估程序" options={COMPLIANCE_ANSWER_OPTIONS} />
+                    {answerOptionsEditor}
                   </div>
                 ) : (
                   <>
@@ -594,36 +607,7 @@ export default function QuestionBankEditPage() {
                       <TextField label="標題" value={form.title} onChange={(v) => setField('title', v)} placeholder="題庫列表與設計自評表顯示的短標題" />
                       <AreaField label="自查依據" value={form.checkBasis} onChange={(v) => setField('checkBasis', v)} placeholder="對應原自行查核依據" />
                       <AreaField label="自行查核程序" value={form.checkProcedure} onChange={(v) => setField('checkProcedure', v)} placeholder="對應原自行查核項目" />
-                      <div className="flex flex-col gap-[8px] items-start w-full">
-                        <FieldLabel text="作答選項" />
-                        {form.checkOptions.map((option, index) => (
-                          <div key={index} className="flex gap-[8px] items-center w-full">
-                            <div className="bg-white relative rounded-[8px] h-[48px] flex-1 min-w-0">
-                              <input
-                                value={option}
-                                onChange={(event) => updateCheckOption(index, event.target.value)}
-                                className="block h-[48px] w-full bg-transparent border-none outline-none px-[12px] font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[16px] text-[#2e2e38]"
-                              />
-                              <div aria-hidden="true" className="absolute border border-[#ececf3] border-solid inset-0 pointer-events-none rounded-[8px]" />
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => removeCheckOption(index)}
-                              disabled={form.checkOptions.length <= 1}
-                              className="bg-[#f6f6fa] border-none rounded-[4px] px-[12px] h-[48px] cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
-                            >
-                              <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] text-[#1a1a24]">移除</p>
-                            </button>
-                          </div>
-                        ))}
-                        <button
-                          type="button"
-                          onClick={addCheckOption}
-                          className="bg-transparent border-none cursor-pointer p-0"
-                        >
-                          <p className="underline font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[14px] text-[#1a1a24]">新增選項</p>
-                        </button>
-                      </div>
+                      {answerOptionsEditor}
                     </div>
                     <div className="flex flex-col gap-[16px] items-start w-full">
                       <SectionTitle text="RCSA" />

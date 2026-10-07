@@ -78,7 +78,7 @@ function QuestionDetailModal({
           <>
             <DetailLine label="應遵循之法令規章" value={row.externalRule} isDarkMode={isDarkMode} />
             <DetailLine label="遵循程序" value={row.controlMeasure} isDarkMode={isDarkMode} />
-            <DetailLine label="自行評估程序" value={getAnswerOptions(template, row.id).join('、')} isDarkMode={isDarkMode} />
+            <DetailLine label="自行評估結果" value={getAnswerOptions(template, row.id).join('、')} isDarkMode={isDarkMode} />
           </>
         ) : (
           <>

@@ -359,7 +359,7 @@ export default function QuestionBankEditPage() {
 
   const answerOptionsEditor = (
         <div className="flex flex-col gap-[8px] items-start w-full">
-          <FieldLabel text={template === 'compliance' ? '自行評估程序（作答選項）' : '作答選項'} />
+          <FieldLabel text={template === 'compliance' ? '自行評估結果（作答選項）' : '作答選項'} />
           {form.checkOptions.map((option, index) => (
             <div key={index} className="flex gap-[8px] items-center w-full">
               <div className="bg-white relative rounded-[8px] h-[48px] flex-1 min-w-0">

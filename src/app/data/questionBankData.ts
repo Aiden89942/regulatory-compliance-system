@@ -34,7 +34,7 @@ export const COMPLIANCE_QUESTION_BANK: QuestionBankCategory[] = [
     riskCategory: '利害關係人/利益衝突',
     process: '授信審查',
     department: '授信管理部、審查部、營業部',
-    responsibleUnit: '凱基銀行 - 風管部',
+    responsibleUnit: '凱基銀行 - A單位',
     internalRule: '個金業務授信辦法',
     rows: [
       {
@@ -84,7 +84,7 @@ export const COMPLIANCE_QUESTION_BANK: QuestionBankCategory[] = [
     riskCategory: '客戶身分識別',
     process: '存款開戶',
     department: '營業部、個金業務部',
-    responsibleUnit: '凱基金控 - 資訊部',
+    responsibleUnit: '凱基金控 - E單位',
     internalRule: '存款業務作業手冊',
     rows: [
       {
@@ -124,7 +124,7 @@ export const COMPLIANCE_QUESTION_BANK: QuestionBankCategory[] = [
     riskCategory: '資訊服務委外',
     process: '資訊服務委外',
     department: '資訊科技部、數位金融部',
-    responsibleUnit: '凱基銀行 - 資訊部',
+    responsibleUnit: '凱基銀行 - B單位',
     internalRule: '資訊服務委外管理辦法',
     rows: [
       {
@@ -184,7 +184,7 @@ export const COMPLIANCE_QUESTION_BANK: QuestionBankCategory[] = [
     riskCategory: '財富管理銷售',
     process: '理財商品銷售',
     department: '財富管理部',
-    responsibleUnit: '凱基銀行 - 風管部',
+    responsibleUnit: '凱基銀行 - A單位',
     internalRule: '財富管理業務管理辦法',
     rows: [
       {
@@ -224,7 +224,7 @@ export const COMPLIANCE_QUESTION_BANK: QuestionBankCategory[] = [
     riskCategory: '個人金融授信',
     process: '個人貸款',
     department: '個金業務部',
-    responsibleUnit: '凱基銀行 - 風管部',
+    responsibleUnit: '凱基銀行 - A單位',
     internalRule: '個人貸款授信辦法',
     rows: [
       {
@@ -264,7 +264,7 @@ export const COMPLIANCE_QUESTION_BANK: QuestionBankCategory[] = [
     riskCategory: '數位通路',
     process: '網路銀行',
     department: '數位金融部',
-    responsibleUnit: '凱基銀行 - 資訊部',
+    responsibleUnit: '凱基銀行 - B單位',
     internalRule: '電子銀行業務管理辦法',
     rows: [
       {
@@ -304,7 +304,7 @@ export const COMPLIANCE_QUESTION_BANK: QuestionBankCategory[] = [
     riskCategory: '法令遵循',
     process: '洗錢防制',
     department: '法令遵循部、營業部、個金業務部',
-    responsibleUnit: '凱基金控 - 法遵部',
+    responsibleUnit: '凱基金控 - F單位',
     internalRule: '防制洗錢及打擊資恐政策',
     rows: [
       {
@@ -344,7 +344,7 @@ export const COMPLIANCE_QUESTION_BANK: QuestionBankCategory[] = [
     riskCategory: '法務合約',
     process: '合約審查',
     department: '法務部',
-    responsibleUnit: '凱基金控 - 法遵部',
+    responsibleUnit: '凱基金控 - F單位',
     internalRule: '契約審查作業要點',
     rows: [
       {
@@ -387,7 +387,7 @@ export const INTERNAL_CONTROL_QUESTION_BANK: QuestionBankCategory[] = [
     riskCategory: '作業流程控管',
     process: '內部查核',
     department: '稽核處、法令遵循部',
-    responsibleUnit: '凱基銀行 - 稽核處',
+    responsibleUnit: '凱基銀行 - C單位',
     internalRule: '內部控制制度自行查核作業要點',
     rows: [
       {
@@ -417,7 +417,7 @@ export const INTERNAL_CONTROL_QUESTION_BANK: QuestionBankCategory[] = [
     riskCategory: '資訊安全控管',
     process: '系統權限管理',
     department: '資訊部、資訊科技部、營運管理部',
-    responsibleUnit: '凱基銀行 - 資訊部',
+    responsibleUnit: '凱基銀行 - B單位',
     internalRule: '資訊安全管理制度',
     rows: [
       {
@@ -457,7 +457,7 @@ export const INTERNAL_CONTROL_QUESTION_BANK: QuestionBankCategory[] = [
     riskCategory: '委外作業控管',
     process: '資訊服務委外',
     department: '資訊科技部、數位金融部',
-    responsibleUnit: '凱基銀行 - 資訊部',
+    responsibleUnit: '凱基銀行 - B單位',
     internalRule: '資訊服務委外管理辦法',
     rows: [
       {
@@ -507,7 +507,7 @@ export const INTERNAL_CONTROL_QUESTION_BANK: QuestionBankCategory[] = [
     riskCategory: '作業風險控管',
     process: '作業風險自評',
     department: '風險管理部',
-    responsibleUnit: '凱基金控 - 風管部',
+    responsibleUnit: '凱基金控 - D單位',
     internalRule: '作業風險管理政策',
     rows: [
       {
@@ -547,7 +547,7 @@ export const INTERNAL_CONTROL_QUESTION_BANK: QuestionBankCategory[] = [
     riskCategory: '數位服務控管',
     process: '行動銀行維運',
     department: '數位金融部',
-    responsibleUnit: '凱基銀行 - 資訊部',
+    responsibleUnit: '凱基銀行 - B單位',
     internalRule: '資訊系統維運管理辦法',
     rows: [
       {
@@ -587,7 +587,7 @@ export const INTERNAL_CONTROL_QUESTION_BANK: QuestionBankCategory[] = [
     riskCategory: '法令遵循查核',
     process: '法遵自行查核',
     department: '法令遵循部',
-    responsibleUnit: '凱基銀行 - 法遵部',
+    responsibleUnit: '凱基銀行 - C單位',
     internalRule: '法令遵循自行查核作業程序',
     rows: [
       {
@@ -627,7 +627,7 @@ export const INTERNAL_CONTROL_QUESTION_BANK: QuestionBankCategory[] = [
     riskCategory: '人力作業控管',
     process: '人員異動',
     department: '人力資源部、法令遵循部',
-    responsibleUnit: '凱基金控 - 法遵部',
+    responsibleUnit: '凱基金控 - F單位',
     internalRule: '人員進用及異動作業要點',
     rows: [
       {

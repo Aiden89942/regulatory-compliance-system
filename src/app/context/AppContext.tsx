@@ -112,9 +112,9 @@ export interface AppUser {
 }
 
 export const APP_USERS: AppUser[] = [
-  { id: 'maintainer', role: 'maintainer', name: '林志明', roleLabel: '問卷維護', unit: '凱基銀行 - 風管部' },
-  { id: 'reviewer', role: 'reviewer', name: '黃淑芬', roleLabel: '問卷審核', unit: '凱基金控 - 法遵部' },
-  { id: 'sender', role: 'sender', name: '張雅婷', roleLabel: '問卷發送', unit: '凱基金控 - 資訊部' },
+  { id: 'maintainer', role: 'maintainer', name: '林志明', roleLabel: '問卷維護', unit: '凱基銀行 - A單位' },
+  { id: 'reviewer', role: 'reviewer', name: '黃淑芬', roleLabel: '問卷審核', unit: '凱基金控 - F單位' },
+  { id: 'sender', role: 'sender', name: '張雅婷', roleLabel: '問卷發送', unit: '凱基金控 - E單位' },
   { id: 'assessor', role: 'assessor', name: '陳宜安', roleLabel: '自評人員', unit: '授信管理部' },
 ];
 

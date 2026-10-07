@@ -563,7 +563,7 @@ export default function RiskAssessmentFormPage({ onNavigate }: RiskAssessmentFor
       <Header onNavigate={onNavigate} currentPage="supplier-risk-assessment" />
       <div className="pt-[120px] w-full">
         <div className="bg-[#ececf3] content-stretch flex flex-col items-center py-[32px] relative rounded-tl-[32px] rounded-tr-[32px] shrink-0 w-full min-h-[calc(100vh-120px)]">
-          <div className="content-stretch flex flex-col gap-[32px] items-center px-[32px] relative shrink-0 w-[1440px]">
+          <div className="content-stretch flex flex-col gap-[32px] items-center px-[32px] relative shrink-0 w-full max-w-[1440px]">
             {/* Breadcrumb */}
             <Breadcrumb onNavigate={onNavigate} />
 

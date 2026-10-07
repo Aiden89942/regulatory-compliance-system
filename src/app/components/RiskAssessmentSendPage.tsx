@@ -56,7 +56,7 @@ export default function RiskAssessmentSendPage({ onNavigate }: RiskAssessmentSen
 
       {/* 主要内容 */}
       <div className="bg-[#ececf3] content-stretch flex flex-col h-full items-center px-0 pt-[152px] pb-[100px] relative rounded-tl-[32px] rounded-tr-[32px] shrink-0 w-full flex-1">
-        <div className="content-stretch flex flex-col gap-[32px] items-start px-[32px] py-0 relative shrink-0 w-[1440px]">
+        <div className="content-stretch flex flex-col gap-[32px] items-start px-[32px] py-0 relative shrink-0 w-full max-w-[1440px]">
           {/* 面包屑 */}
           <div className="content-stretch flex gap-[8px] h-[24px] items-center relative shrink-0 w-full">
             <div className="relative shrink-0">

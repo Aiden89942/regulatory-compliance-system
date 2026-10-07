@@ -2,6 +2,8 @@ import svgPaths from "./svg-mw3h2lnbfe";
 import clsx from "clsx";
 import { useState } from "react";
 import SupplierProgressOverview from "../app/components/SupplierProgressOverview";
+import QuestionnaireFillOverview, { useOverviewRows } from "../app/components/QuestionnaireFillOverview";
+import { useTaskCount } from "../app/components/useTaskCount";
 import InventoryCard from "../app/components/InventoryCard";
 import DraggableScroll from "../app/components/DraggableScroll";
 import SupplierRiskAnalysis from "../app/components/SupplierRiskAnalysis";
@@ -804,7 +806,7 @@ function Frame43({ onNavigate }: { onNavigate?: (page: string) => void }) {
 
 function Frame41({ onNavigate }: { onNavigate?: (page: string) => void }) {
   return (
-    <div className="content-stretch flex items-center justify-between relative shrink-0 w-[1376px]">
+    <div className="content-stretch flex items-center justify-between relative shrink-0 w-full max-w-[1376px]">
       <PflLogo />
       <Frame43 onNavigate={onNavigate} />
     </div>
@@ -843,10 +845,11 @@ type Frame19Props = {
 
 function Frame19({ isExpanded, onToggle, isDarkMode = false }: Frame19Props) {
   const textColor = isDarkMode ? 'text-white' : 'text-black';
+  const taskCount = useTaskCount();
 
   return (
     <div className="content-stretch flex gap-[10px] items-center justify-center relative shrink-0">
-      <p className={`font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] leading-[normal] relative shrink-0 text-[32px] ${textColor} text-nowrap tracking-[0.96px] transition-colors duration-300`} style={{ fontVariationSettings: "'wght' 700" }}>{`Hi Ace 您今天有 3 筆任務待處理 `}</p>
+      <p className={`font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] leading-[normal] relative shrink-0 text-[32px] ${textColor} text-nowrap tracking-[0.96px] transition-colors duration-300`} style={{ fontVariationSettings: "'wght' 700" }}>{`Hi Ace 您今天有 ${taskCount} 筆任務待處理 `}</p>
       <BackgroundImage15>
         <div className={clsx("flex-none transition-transform duration-300", isExpanded ? "rotate-0" : "rotate-[270deg]")}>
           <Frame onClick={onToggle} />
@@ -1045,6 +1048,7 @@ function Icon1({ isDarkMode = false, isYellowCard = false }: IconProps) {
 }
 
 function Frame90({ isDarkMode = false, isYellowCard = false }: Frame89Props) {
+  const fillingCount = useOverviewRows().filter((row) => row.tab === '填答中').length;
   const textColor = isDarkMode
     ? (isYellowCard ? 'text-[#1a1a24]' : 'text-white')
     : 'text-[#1a1a24]';
@@ -1052,7 +1056,7 @@ function Frame90({ isDarkMode = false, isYellowCard = false }: Frame89Props) {
   return (
     <div className="basis-0 content-stretch flex flex-col gap-[10px] grow items-start min-h-px min-w-px relative shrink-0">
       <p className={`font-['EYInterstate:Regular',sans-serif] leading-[normal] not-italic relative shrink-0 ${textColor} text-[22px] w-full transition-colors duration-300`}>填答情形追蹤</p>
-      <BackgroundImageAndText1 text="2" isDarkMode={isDarkMode} isYellowCard={isYellowCard} />
+      <BackgroundImageAndText1 text={String(fillingCount)} isDarkMode={isDarkMode} isYellowCard={isYellowCard} />
     </div>
   );
 }
@@ -1182,7 +1186,7 @@ type TodolistProps = {
 
 function Todolist({ isExpanded, isDarkMode = false, onNavigate, showFillTracking = false }: TodolistProps & { showFillTracking?: boolean }) {
   return (
-    <DraggableScroll className="w-[1360px]">
+    <DraggableScroll className="w-full max-w-[1360px]">
       <div className="content-stretch flex gap-[32px] items-center pb-0 pt-[20px] px-0 relative shrink-0" data-name="todolist" style={{ width: 'max-content' }}>
         <InventoryCard isDarkMode={isDarkMode} />
         {showFillTracking ? <Button3 isDarkMode={isDarkMode} /> : null}
@@ -1202,7 +1206,7 @@ type Frame45Props = {
 
 function Frame45({ isExpanded, onToggleExpanded, isDarkMode, onToggleDarkMode, onNavigate, showFillTracking = false }: Frame45Props & { showFillTracking?: boolean }) {
   return (
-    <div className="content-stretch flex flex-col gap-[24px] items-start relative shrink-0 w-[1360px]">
+    <div className="content-stretch flex flex-col gap-[24px] items-start relative shrink-0 w-full max-w-[1360px]">
       <Frame20 isExpanded={isExpanded} onToggleExpanded={onToggleExpanded} isDarkMode={isDarkMode} onToggleDarkMode={onToggleDarkMode} />
       <Todolist isExpanded={isExpanded} isDarkMode={isDarkMode} onNavigate={onNavigate} showFillTracking={showFillTracking} />
     </div>
@@ -2137,7 +2141,7 @@ type Frame46Props = {
 
 function Frame46({ selectedYear, isYearDropdownOpen, onToggleYearDropdown, years, onYearChange, isDarkMode = false }: Frame46Props) {
   return (
-    <div className="content-stretch flex flex-col items-start relative shrink-0 w-[1360px]">
+    <div className="content-stretch flex flex-col items-start relative shrink-0 w-full max-w-[1360px]">
       <Frame93 
         selectedYear={selectedYear}
         isYearDropdownOpen={isYearDropdownOpen}
@@ -2159,7 +2163,7 @@ function Frame69({ isDarkMode = false }: Frame69Props) {
   const textColor = isDarkMode ? 'text-white' : 'text-black';
   
   return (
-    <div className="content-stretch flex items-center relative shrink-0 w-[1360px]">
+    <div className="content-stretch flex items-center relative shrink-0 w-full max-w-[1360px]">
       <p className={`font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] leading-[normal] relative shrink-0 text-[32px] ${textColor} text-nowrap tracking-[0.96px] transition-colors duration-300`} style={{ fontVariationSettings: "'wght' 700" }}>
         <span style={{ fontVariationSettings: "'wght' 700" }}>問卷填答情形總</span>覽<span style={{ fontVariationSettings: "'wght' 700" }}> </span>{" "}
       </p>
@@ -2281,7 +2285,7 @@ function Component2({ isDarkMode = false }: Component2Props) {
   const bgColor = isDarkMode ? 'bg-[rgba(255,255,255,0.12)]' : 'bg-white';
   
   return (
-    <div className={`${bgColor} content-stretch flex flex-col items-start overflow-clip relative rounded-[8px] shrink-0 w-[1360px] transition-colors duration-300`} data-name="供應商進度總覽">
+    <div className={`${bgColor} content-stretch flex flex-col items-start overflow-clip relative rounded-[8px] shrink-0 w-full max-w-[1360px] transition-colors duration-300`} data-name="供應商進度總覽">
       <Tab isDarkMode={isDarkMode} />
       <Frame110 isDarkMode={isDarkMode} />
       <SimplifiedVendorTable isDarkMode={isDarkMode} />
@@ -2295,10 +2299,10 @@ type Frame92Props = {
 
 function Frame92({ isDarkMode = false }: Frame92Props) {
   return (
-    <div className="content-stretch flex flex-col gap-[24px] items-start relative shrink-0">
+    <div className="content-stretch flex flex-col gap-[24px] items-start relative shrink-0 w-full max-w-[1360px]">
       <Frame69 isDarkMode={isDarkMode} />
-      <div className="shrink-0 w-[1360px] self-start">
-        <SupplierProgressOverview isDarkMode={isDarkMode} />
+      <div className="shrink-0 w-full max-w-[1360px] self-start">
+        <QuestionnaireFillOverview isDarkMode={isDarkMode} />
       </div>
     </div>
   );

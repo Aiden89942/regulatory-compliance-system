@@ -77,7 +77,7 @@ export default function RiskAssessmentViewPage({ onNavigate }: RiskAssessmentVie
       <Header onNavigate={onNavigate} currentPage="risk-assessment" />
       <div className="pt-[120px] w-full">
         <div className="bg-[#ececf3] flex flex-col items-center py-[32px] rounded-tl-[32px] rounded-tr-[32px] w-full min-h-[calc(100vh-120px)]">
-          <div className="flex flex-col gap-[32px] items-start px-[32px] w-[1440px]">
+          <div className="flex flex-col gap-[32px] items-start px-[32px] w-full max-w-[1440px]">
             
             {/* Breadcrumb */}
             <div className="flex gap-[8px] h-[24px] items-center">

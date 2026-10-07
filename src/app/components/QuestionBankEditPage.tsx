@@ -453,7 +453,7 @@ export default function QuestionBankEditPage() {
       <Header onNavigate={onNavigate} currentPage="question-bank" />
       <div className="pt-[120px] w-full">
         <div className="bg-[#ececf3] flex flex-col items-center py-[32px] rounded-tl-[32px] rounded-tr-[32px] w-full min-h-[calc(100vh-120px)]">
-          <div className="flex flex-col gap-[32px] items-center px-[32px] w-[1440px]">
+          <div className="flex flex-col gap-[32px] items-center px-[32px] w-full max-w-[1440px]">
             <div className="flex gap-[8px] h-[24px] items-center w-full">
               <button type="button" onClick={() => onNavigate('home')} className="bg-transparent border-none cursor-pointer p-0">
                 <p className="font-['Inter:Regular','Noto_Sans_JP:Regular',sans-serif] font-normal leading-[24px] text-[#747480] text-[16px] tracking-[-0.3125px]">首頁</p>

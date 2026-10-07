@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { QuestionTemplate } from './questionBankData';
+import { openAssessmentForReview } from './assessmentStore';
 
 const RESPONSIBLE_ORGS = ['凱基金控', '凱基銀行'] as const;
 const RESPONSIBLE_OFFICES = ['風管部', '資訊部', '法遵部'] as const;
@@ -230,6 +231,7 @@ export function submitQuestionnaireForReview(item: Omit<QuestionnaireReviewItem,
 
 export function setQuestionnaireReviewStatus(id: string, status: ReviewStatus) {
   items = items.map((row) => (row.id === id ? { ...row, status } : row));
+  if (status === '已發送') openAssessmentForReview(id);
   emit();
 }
 

@@ -182,7 +182,7 @@ export function QuestionnaireDraftPanel() {
   if (currentUser.role !== 'maintainer') return null;
 
   return (
-    <div className="flex flex-col gap-[16px] w-[1360px]">
+    <div className="flex flex-col gap-[16px] w-full max-w-[1360px]">
       <p className={`font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[32px] tracking-[0.96px] ${isDarkMode ? 'text-white' : 'text-black'}`} style={{ fontWeight: 700 }}>
         問卷清單
       </p>
@@ -270,24 +270,43 @@ export default function QuestionBankDraftPage() {
           </div>
 
           <div className="flex flex-col items-start pb-[32px] pt-0 px-[32px] relative shrink-0 w-full max-w-[1504px]">
-            <div className={`${isDarkMode ? 'bg-[#2e2e38] border-[#474756]' : 'bg-white border-[#ececf3]'} rounded-[12px] overflow-hidden shadow-sm border w-full transition-colors`}>
-              <div className={`flex items-stretch w-full ${isDarkMode ? 'bg-[#1a1a24]' : 'bg-[#f6f6fa]'}`}>
+            {/* 問卷類型：與題庫維護的模板選擇相同樣式 */}
+            <div className={`${isDarkMode ? 'bg-[#2e2e38]' : 'bg-white'} rounded-[12px] p-[24px] shadow-sm mb-[16px] w-full transition-colors`}>
+              <p className={`font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[16px] mb-[12px] ${isDarkMode ? 'text-white' : 'text-[#1a1a24]'}`} style={{ fontWeight: 700 }}>
+                選擇問卷類型
+              </p>
+              <div className="flex gap-[12px] flex-wrap">
                 {TEMPLATE_FILTERS.map(({ value, label }) => {
+                  const isActive = template === value;
                   const count = rows.filter((row) => row.draft.template === value).length;
-                  const active = template === value;
                   return (
                     <button
                       key={value}
                       type="button"
                       onClick={() => setTemplate(value)}
-                      className={`flex-1 border-none cursor-pointer flex gap-[6px] items-center justify-center px-[20px] ${active ? 'bg-[#ffe600] py-[16px]' : 'bg-transparent py-[12px]'}`}
+                      className={`px-[20px] py-[10px] rounded-[8px] border-none cursor-pointer transition-colors ${
+                        isActive
+                          ? 'bg-[#ffe600]'
+                          : isDarkMode
+                            ? 'bg-[#1a1a24] hover:bg-[#353545]'
+                            : 'bg-[#f6f6fa] hover:bg-[#ececf3]'
+                      }`}
                     >
-                      <p className={`text-[20px] whitespace-nowrap ${active ? "font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[#1a1a24]" : "font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] text-[#747480]"}`}>{label}</p>
-                      <p className={`text-[24px] ${active ? "font-['EYInterstate:Bold',sans-serif] text-[#1a1a24]" : "font-['EYInterstate:Regular',sans-serif] text-[#747480]"}`}>{count}</p>
+                      <p
+                        className={`font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[15px] ${
+                          isActive ? 'text-[#1a1a24]' : isDarkMode ? 'text-[#f6f6fa]' : 'text-[#747480]'
+                        }`}
+                        style={{ fontWeight: 700 }}
+                      >
+                        {label} ({count})
+                      </p>
                     </button>
                   );
                 })}
               </div>
+            </div>
+
+            <div className={`${isDarkMode ? 'bg-[#2e2e38] border-[#474756]' : 'bg-white border-[#ececf3]'} rounded-[12px] overflow-hidden shadow-sm border w-full transition-colors`}>
               <DraftTable visible={visible} isDarkMode={isDarkMode} onNavigate={onNavigate} submitDraft={submitDraft} />
             </div>
           </div>

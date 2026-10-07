@@ -1,3 +1,6 @@
+import { useQuestionnaireReviews, formatSelfAssessmentUnits } from '../data/questionnaireReviewStore';
+import { staticAssessmentKey, useAssessmentRecords } from '../data/assessmentStore';
+import { SEED_DEFICIENCY_DEADLINE, useDeficiencies } from '../data/deficiencyStore';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import Header from './Header';
@@ -18,11 +21,13 @@ interface AssessmentItem {
   supplier: string;
   risk: 'high' | 'medium' | 'low' | 'none';
   status: string;
-  statusType: 'waiting' | 'replied' | 'overdue' | 'draft' | 'sent';
+  statusType: 'waiting' | 'replied' | 'overdue' | 'draft' | 'sent' | 'deficiency';
   deadline: string;
-  actionType: 'viewOnly' | 'continueFill' | 'approved' | 'refill' | 'notifyVendor';
+  actionType: 'viewOnly' | 'continueFill' | 'approved' | 'refill' | 'notifyVendor' | 'deficiency' | 'viewSubmitted';
   template?: 'compliance' | 'internal-control';
   categoryId?: string;
+  deficiencyId?: string; // 對應缺失追蹤的問卷
+  reviewId?: string; // 由「設計問卷」發送出來的問卷
 }
 
 const OUTSOURCING_BY_YEAR: Record<number, AssessmentItem[]> = {
@@ -32,7 +37,7 @@ const OUTSOURCING_BY_YEAR: Record<number, AssessmentItem[]> = {
     { id: 'fill-comp-4', projectName: '理財商品銷售', supplier: '財富管理部', risk: 'medium', status: '尚未完成填寫', statusType: 'draft', deadline: '2026.11.15', actionType: 'continueFill', template: 'compliance', categoryId: 'comp-4' },
     { projectName: '授信審查流程', supplier: '風險管理部', risk: 'medium', status: '尚未完成填寫', statusType: 'draft', deadline: '2026.04.15', actionType: 'continueFill' },
     { projectName: '開戶作業流程', supplier: '個金業務部', risk: 'medium', status: '尚未完成填寫', statusType: 'draft', deadline: '2026.04.30', actionType: 'continueFill' },
-    { projectName: '貸款核貸流程', supplier: '審查部', risk: 'low', status: '已送出等待批准', statusType: 'sent', deadline: '2026.03.31', actionType: 'approved' },
+    { projectName: '貸款核貸流程', supplier: '審查部', risk: 'low', status: '已送出', statusType: 'sent', deadline: '2026.03.31', actionType: 'approved' },
     { projectName: '信用卡審核流程', supplier: '數位金融部', risk: 'low', status: '尚未完成填寫', statusType: 'draft', deadline: '2026.05.15', actionType: 'continueFill' },
     { projectName: '理財商品上架流程', supplier: '財富管理部', risk: 'high', status: '已逾期', statusType: 'overdue', deadline: '2026.05.01', actionType: 'refill' },
     { projectName: '資訊安全監控流程', supplier: '資訊科技部', risk: 'high', status: '已逾期', statusType: 'overdue', deadline: '2026.02.28', actionType: 'refill' },
@@ -43,7 +48,7 @@ const OUTSOURCING_BY_YEAR: Record<number, AssessmentItem[]> = {
     { projectName: '洗錢防制監修流程', supplier: '法令遵循部', risk: 'medium', status: '尚未完成填寫', statusType: 'draft', deadline: '2025.04.10', actionType: 'continueFill' },
     { projectName: '內部稽核查核流程', supplier: '稽核處', risk: 'medium', status: '尚未完成填寫', statusType: 'draft', deadline: '2025.04.25', actionType: 'continueFill' },
     { projectName: '客戶資料管理流程', supplier: '營運管理部', risk: 'medium', status: '尚未完成填寫', statusType: 'draft', deadline: '2025.05.01', actionType: 'continueFill' },
-    { projectName: '雲端系統部署流程', supplier: '資訊處', risk: 'low', status: '已送出等待批准', statusType: 'sent', deadline: '2025.03.20', actionType: 'approved' },
+    { projectName: '雲端系統部署流程', supplier: '資訊處', risk: 'low', status: '已送出', statusType: 'sent', deadline: '2025.03.20', actionType: 'approved' },
     { projectName: '電子支付結算流程', supplier: '支付金融部', risk: 'high', status: '已逾期', statusType: 'overdue', deadline: '2025.02.28', actionType: 'refill' },
     { projectName: '分行作業標準化流程', supplier: '通路管理部', risk: 'high', status: '已逾期', statusType: 'overdue', deadline: '2025.03.05', actionType: 'refill' },
     { projectName: '資產負債管理流程', supplier: '財務部', risk: 'high', status: '已逾期', statusType: 'overdue', deadline: '2025.01.31', actionType: 'refill' },
@@ -52,8 +57,8 @@ const OUTSOURCING_BY_YEAR: Record<number, AssessmentItem[]> = {
     { projectName: '弱點掃描修復流程', supplier: '資安部', risk: 'high', status: '已逾期', statusType: 'overdue', deadline: '2025.02.10', actionType: 'refill' },
   ],
   2024: [
-    { projectName: '核心系統升級流程', supplier: '資訊科技部', risk: 'low', status: '已送出等待批准', statusType: 'sent', deadline: '2024.06.30', actionType: 'approved' },
-    { projectName: '網路架構調整流程', supplier: '網路管理部', risk: 'low', status: '已送出等待批准', statusType: 'sent', deadline: '2024.05.15', actionType: 'approved' },
+    { projectName: '核心系統升級流程', supplier: '資訊科技部', risk: 'low', status: '已送出', statusType: 'sent', deadline: '2024.06.30', actionType: 'approved' },
+    { projectName: '網路架構調整流程', supplier: '網路管理部', risk: 'low', status: '已送出', statusType: 'sent', deadline: '2024.05.15', actionType: 'approved' },
     { projectName: '服務台委外管理流程', supplier: '行政管理部', risk: 'medium', status: '尚未完成填寫', statusType: 'draft', deadline: '2024.04.20', actionType: 'continueFill' },
     { projectName: '災害復原演練流程', supplier: '風險管控部', risk: 'medium', status: '尚未完成填寫', statusType: 'draft', deadline: '2024.04.30', actionType: 'continueFill' },
     { projectName: '郵件安全強化流程', supplier: '資訊安全部', risk: 'high', status: '已逾期', statusType: 'overdue', deadline: '2024.03.01', actionType: 'refill' },
@@ -61,9 +66,9 @@ const OUTSOURCING_BY_YEAR: Record<number, AssessmentItem[]> = {
     { projectName: '機房電力維修流程', supplier: '總務部', risk: 'high', status: '已逾期', statusType: 'overdue', deadline: '2024.02.28', actionType: 'refill' },
   ],
   2023: [
-    { projectName: '人事薪資作業流程', supplier: '人力資源部', risk: 'low', status: '已送出等待批准', statusType: 'sent', deadline: '2023.06.15', actionType: 'approved' },
-    { projectName: '文件檔案管理流程', supplier: '文書部', risk: 'low', status: '已送出等待批准', statusType: 'sent', deadline: '2023.05.30', actionType: 'approved' },
-    { projectName: '企業網站更新流程', supplier: '行銷企劃部', risk: 'low', status: '已送出等待批准', statusType: 'sent', deadline: '2023.07.01', actionType: 'approved' },
+    { projectName: '人事薪資作業流程', supplier: '人力資源部', risk: 'low', status: '已送出', statusType: 'sent', deadline: '2023.06.15', actionType: 'approved' },
+    { projectName: '文件檔案管理流程', supplier: '文書部', risk: 'low', status: '已送出', statusType: 'sent', deadline: '2023.05.30', actionType: 'approved' },
+    { projectName: '企業網站更新流程', supplier: '行銷企劃部', risk: 'low', status: '已送出', statusType: 'sent', deadline: '2023.07.01', actionType: 'approved' },
     { projectName: '雲端儲存應用流程', supplier: '數位金融部', risk: 'medium', status: '尚未完成填寫', statusType: 'draft', deadline: '2023.04.15', actionType: 'continueFill' },
     { projectName: '資安健康檢查流程', supplier: '資訊安全部', risk: 'high', status: '已逾期', statusType: 'overdue', deadline: '2023.03.10', actionType: 'refill' },
     { projectName: '網路設備維修流程', supplier: '系統管理部', risk: 'high', status: '已逾期', statusType: 'overdue', deadline: '2023.02.28', actionType: 'refill' },
@@ -71,8 +76,8 @@ const OUTSOURCING_BY_YEAR: Record<number, AssessmentItem[]> = {
     { projectName: '客服委外評估流程', supplier: '客戶關係部', risk: 'high', status: '已逾期', statusType: 'overdue', deadline: '2023.01.31', actionType: 'refill' },
   ],
   2022: [
-    { projectName: '辦公室佈線工程流程', supplier: '總務部', risk: 'low', status: '已送出等待批准', statusType: 'sent', deadline: '2022.06.30', actionType: 'approved' },
-    { projectName: '防毒軟體採購流程', supplier: '資訊安全部', risk: 'low', status: '已送出等待批准', statusType: 'sent', deadline: '2022.05.15', actionType: 'approved' },
+    { projectName: '辦公室佈線工程流程', supplier: '總務部', risk: 'low', status: '已送出', statusType: 'sent', deadline: '2022.06.30', actionType: 'approved' },
+    { projectName: '防毒軟體採購流程', supplier: '資訊安全部', risk: 'low', status: '已送出', statusType: 'sent', deadline: '2022.05.15', actionType: 'approved' },
     { projectName: '設備租賃管理流程', supplier: '採購部', risk: 'medium', status: '尚未完成填寫', statusType: 'draft', deadline: '2022.04.20', actionType: 'continueFill' },
     { projectName: '電子公文傳遞流程', supplier: '秘書室', risk: 'medium', status: '尚未完成填寫', statusType: 'draft', deadline: '2022.04.30', actionType: 'continueFill' },
     { projectName: '差勤系統維護流程', supplier: '人力資源部', risk: 'high', status: '已逾期', statusType: 'overdue', deadline: '2022.03.01', actionType: 'refill' },
@@ -192,7 +197,7 @@ function ExpiringDetailModal({
   if (!isOpen) return null;
 
   const title = type === 'outsourcing' ? '即將到期 — 法令遵循自行評估' : '即將到期 — 內部控制制度自行查核';
-  const statusLabel = type === 'outsourcing' ? '已送出等待批准' : '等待單位回覆';
+  const statusLabel = type === 'outsourcing' ? '已送出' : '等待單位回覆';
   const statusColor = type === 'outsourcing' ? '#EE762F' : '#2E7CF6';
   const showRisk = type === 'supplier';
 
@@ -327,7 +332,7 @@ function ExpiringDetailModal({
 function ExpiringCard({ year, onNavigate }: { year: number; onNavigate?: (page: string) => void }) {
   const outsourcingData = OUTSOURCING_BY_YEAR[year] || [];
   const supplierData = SUPPLIER_BY_YEAR[year] || [];
-  // 即將到期: outsourcing = 已送出等待批准 (sent), supplier = 等待單位回覆 (waiting)
+  // 即將到期: outsourcing = 已送出 (sent), supplier = 等待單位回覆 (waiting)
   const outsourcingExpiring = outsourcingData.filter(d => d.statusType === 'sent');
   const supplierExpiring = supplierData.filter(d => d.statusType === 'waiting');
 
@@ -372,7 +377,7 @@ function ExpiringCard({ year, onNavigate }: { year: number; onNavigate?: (page: 
           </div>
           {/* Two rows: outsourcing sent + supplier waiting counts */}
           <div className="flex flex-col gap-[10px] items-start w-full">
-            {/* Row 1: 法令遵循自行評估 — 已送出等待批准 */}
+            {/* Row 1: 法令遵循自行評估 — 已送出 */}
             <div className="flex items-end justify-between w-full cursor-pointer group" onClick={() => setModalType('outsourcing')}>
               <div className="flex flex-col items-center justify-center pb-[4px]">
                 <p className="font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[23px] text-[#4a5565] text-[16px] tracking-[0.48px] whitespace-nowrap" style={{ fontVariationSettings: "'wght' 400" }}>{`法令遵循自行評估 `}</p>
@@ -430,6 +435,10 @@ function openAssessmentItem(
   item: AssessmentItem,
   onNavigate?: (page: string, project?: string, query?: Record<string, string>) => void,
 ) {
+  if (item.reviewId && item.template) {
+    onNavigate?.('self-assessment', item.projectName, { template: item.template, review: item.reviewId });
+    return;
+  }
   if (item.categoryId && item.template) {
     onNavigate?.('self-assessment', item.projectName, { template: item.template, category: item.categoryId });
     return;
@@ -619,7 +628,7 @@ function RiskBadge({ risk }: { risk: 'high' | 'medium' | 'low' | 'none' }) {
 }
 
 function StatusBadge({ status, statusType }: { status: string; statusType: string }) {
-  if (statusType === 'waiting' || statusType === 'draft') {
+  if (statusType === 'waiting' || statusType === 'draft' || statusType === 'deficiency') {
     // Orange circle with ! icon
     return (
       <div className="flex gap-[4px] items-center">
@@ -678,6 +687,26 @@ function ActionButtons({ item, onNavigate, approvedRecords, onApprove, activeTab
 }) {
   const isApproved = approvedRecords.has(item.projectName);
   const navigate = useNavigate();
+
+  if (item.actionType === 'viewSubmitted') {
+    return (
+      <div className="flex items-center justify-end w-full">
+        <button className="bg-transparent border-none cursor-pointer py-[8px]" onClick={() => onNavigate?.('self-assessment', item.projectName, { template: item.template || 'compliance', review: item.reviewId || '', readonly: '1' })}>
+          <p className="underline font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[23px] text-[#1a1a24] text-[16px] tracking-[0.48px] whitespace-nowrap">查看</p>
+        </button>
+      </div>
+    );
+  }
+
+  if (item.actionType === 'deficiency') {
+    return (
+      <div className="flex items-center justify-end w-full">
+        <button className="bg-transparent border-none cursor-pointer py-[8px]" onClick={() => onNavigate?.('deficiency-tracking', undefined, item.deficiencyId ? { id: item.deficiencyId } : undefined)}>
+          <p className="underline font-['EYInterstate:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[23px] text-[#1a1a24] text-[16px] tracking-[0.48px] whitespace-nowrap">{item.statusType === 'deficiency' ? '查看缺失' : '查看'}</p>
+        </button>
+      </div>
+    );
+  }
 
   // Tab 2: 資訊供應商風險評估
   if (activeTab === 'supplier') {
@@ -790,11 +819,85 @@ function ActionButtons({ item, onNavigate, approvedRecords, onApprove, activeTab
   );
 }
 
-type StatusKey = 'draft' | 'sent' | 'approved' | 'overdue';
+/** 依自評紀錄、缺失追蹤產生評估作業的列表項目（發送出來的問卷、自評結果都會連動） */
+function useDynamicAssessmentItems() {
+  const reviews = useQuestionnaireReviews();
+  const records = useAssessmentRecords();
+  const deficiencies = useDeficiencies();
+
+  const items: AssessmentItem[] = [];
+  records.forEach((record) => {
+    const review = reviews.find((entry) => entry.id === record.reviewId);
+    if (!review || review.status !== '已發送') return;
+    const base = {
+      id: `asm-${record.reviewId}`,
+      projectName: review.process,
+      supplier: formatSelfAssessmentUnits(review.selfAssessmentUnits),
+      risk: 'medium' as const,
+      deadline: record.deadline,
+      template: review.template,
+      reviewId: review.id,
+    };
+    if (record.status === 'draft') {
+      items.push({ ...base, status: '尚未完成填寫', statusType: 'draft', actionType: 'continueFill' });
+    } else if (record.status === 'deficiency') {
+      items.push({ ...base, status: '已列缺失', statusType: 'deficiency', actionType: 'deficiency', deficiencyId: record.deficiencyId });
+    } else {
+      items.push({ ...base, status: '已送出', statusType: 'sent', actionType: 'viewSubmitted' });
+    }
+  });
+  // 既有的缺失追蹤範例（不是由問卷發送產生的）
+  deficiencies.filter((entry) => !entry.reviewId).forEach((entry) => {
+    items.push({
+      id: `asm-${entry.id}`,
+      projectName: entry.process,
+      supplier: entry.unit,
+      risk: 'medium',
+      status: entry.status === '待回填' ? '已列缺失' : '已送出',
+      statusType: entry.status === '待回填' ? 'deficiency' : 'sent',
+      deadline: SEED_DEFICIENCY_DEADLINE,
+      actionType: 'deficiency',
+      template: entry.template,
+      deficiencyId: entry.id,
+    });
+  });
+  return items;
+}
+
+/** 評估作業的完整列表（範例列＋發送出來的問卷），首頁的填答情形總覽也共用這份資料 */
+export function useAssessmentItems(year: number) {
+  const dynamicItems = useDynamicAssessmentItems().filter((item) => item.deadline.startsWith(`${year}.`));
+  const records = useAssessmentRecords();
+
+  // 範例列完成自評後，依自評紀錄改變狀態
+  const applyRecords = (list: AssessmentItem[]) => list.map((item) => {
+    if (!item.categoryId) return item;
+    const record = records.find((entry) => entry.reviewId === staticAssessmentKey(item.categoryId as string));
+    if (!record || record.status === 'draft') return item;
+    const key = staticAssessmentKey(item.categoryId);
+    if (record.status === 'deficiency') {
+      return { ...item, status: '已列缺失', statusType: 'deficiency' as const, actionType: 'deficiency' as const, deficiencyId: record.deficiencyId, reviewId: key };
+    }
+    return { ...item, status: '已送出', statusType: 'sent' as const, actionType: 'viewSubmitted' as const, reviewId: key };
+  });
+
+  return {
+    compliance: [
+      ...dynamicItems.filter((item) => item.template === 'compliance'),
+      ...applyRecords(OUTSOURCING_BY_YEAR[year] || []),
+    ],
+    control: [
+      ...dynamicItems.filter((item) => item.template === 'internal-control'),
+      ...applyRecords(SUPPLIER_BY_YEAR[year] || []),
+    ],
+  };
+}
+
+type StatusKey = 'draft' | 'sent' | 'deficiency' | 'overdue';
 const STATUS_TABS: { key: StatusKey; label: string }[] = [
   { key: 'draft', label: '尚未完成填寫' },
-  { key: 'sent', label: '已送出等待批准' },
-  { key: 'approved', label: '已批准' },
+  { key: 'sent', label: '已送出' },
+  { key: 'deficiency', label: '已列缺失' },
   { key: 'overdue', label: '已逾期' },
 ];
 
@@ -813,8 +916,7 @@ export default function RiskAssessmentPage({ onNavigate }: RiskAssessmentPagePro
 
   const years = [2026, 2025, 2024, 2023, 2022];
 
-  const outsourcingData = OUTSOURCING_BY_YEAR[selectedYear] || [];
-  const supplierData = SUPPLIER_BY_YEAR[selectedYear] || [];
+  const { compliance: outsourcingData, control: supplierData } = useAssessmentItems(selectedYear);
   const complianceFillable = fillableItems(outsourcingData);
   const controlFillable = fillableItems(supplierData);
   const data = activeTab === 'outsourcing' ? outsourcingData : supplierData;
@@ -828,7 +930,8 @@ export default function RiskAssessmentPage({ onNavigate }: RiskAssessmentPagePro
   const statusGroup = (d: AssessmentItem): StatusKey => {
     if (d.statusType === 'draft') return 'draft';
     if (d.statusType === 'overdue') return 'overdue';
-    return approvedRecords.has(d.projectName) && (d.statusType === 'sent' || d.statusType === 'replied') ? 'approved' : 'sent';
+    if (d.statusType === 'deficiency') return 'deficiency';
+    return 'sent';
   };
   const allItems = [...outsourcingData, ...supplierData];
   const filters = STATUS_TABS.map(({ key, label }) => ({
@@ -856,7 +959,7 @@ export default function RiskAssessmentPage({ onNavigate }: RiskAssessmentPagePro
 
       {/* Content area with rounded top corners */}
       <div className="bg-[#ececf3] flex flex-col items-center py-[32px] rounded-tl-[32px] rounded-tr-[32px] w-full pt-[152px]">
-        <div className="flex flex-col gap-[32px] items-start px-[32px] w-[1440px]">
+        <div className="flex flex-col gap-[32px] items-start px-[32px] w-full max-w-[1440px]">
 
           {/* Breadcrumb + Title + Summary */}
           <div className="flex flex-col gap-[16px] items-start w-full">
@@ -987,8 +1090,8 @@ export default function RiskAssessmentPage({ onNavigate }: RiskAssessmentPagePro
               </div>
 
               {/* Table */}
-              <div className="px-[16px] pb-[16px] w-full">
-                <div className="flex items-start w-full">
+              <div className="px-[16px] pb-[16px] w-full overflow-x-auto">
+                <div className="flex items-start w-full min-w-[900px]">
                   {/* Column: 業務項目 */}
                   <div className="flex flex-col items-start w-[195px] shrink-0">
                     <TableHeaderCell text="業務項目" />

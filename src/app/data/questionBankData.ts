@@ -811,3 +811,28 @@ export function getSelfAssessmentQuestions(template: QuestionTemplate, categoryI
   }
   return questions;
 }
+
+/** 依問卷勾選的題目建立自評題目（保留勾選順序，題號從 1 重新編） */
+export function getSelfAssessmentQuestionsByIds(template: QuestionTemplate, questionIds: string[]): SelfAssessmentQuestion[] {
+  const questions: SelfAssessmentQuestion[] = [];
+  questionIds.forEach((id) => {
+    const found = findQuestionRow(template, id);
+    if (!found) return;
+    const { category, row } = found;
+    questions.push({
+      id: row.id,
+      no: questions.length + 1,
+      title: row.title || (template === 'compliance' ? row.controlMeasure : row.question),
+      question: row.question,
+      controlMeasure: row.controlMeasure,
+      externalRule: row.externalRule,
+      operationalRisk: row.operationalRisk,
+      inherentRisk: row.inherentRisk,
+      process: category.process,
+      responsibleUnit: category.responsibleUnit,
+      department: category.department,
+      internalRule: category.internalRule,
+    });
+  });
+  return questions;
+}

@@ -243,7 +243,7 @@ export function QuestionnaireWorkPanel() {
   if (role !== 'reviewer' && role !== 'sender') return null;
 
   return (
-    <div className="flex flex-col gap-[16px] w-[1360px]">
+    <div className="flex flex-col gap-[16px] w-full max-w-[1360px]">
       <p className={`font-['EYInterstate:Bold','Noto_Sans_JP:Bold',sans-serif] text-[32px] tracking-[0.96px] ${isDarkMode ? 'text-white' : 'text-black'}`} style={{ fontWeight: 700 }}>
         {heading}
       </p>

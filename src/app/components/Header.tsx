@@ -124,7 +124,7 @@ function PflLogo({ onClick }: { onClick?: () => void }) {
       data-name="PFL_logo2022 2"
       onClick={onClick}
     >
-      <p className="font-['EYInterstate:Bold',sans-serif] leading-[normal] not-italic relative shrink-0 text-[32px] text-nowrap text-white">自行評估與自行查核系統</p>
+      <p className="font-['EYInterstate:Bold',sans-serif] leading-[normal] not-italic relative shrink-0 text-[20px] min-[1200px]:text-[32px] text-nowrap text-white">自行評估與自行查核系統</p>
     </div>
   );
 }
@@ -501,7 +501,7 @@ export default function Header({ onNavigate: onNavigateProp, currentPage: curren
     <div className={`bg-[#2e2e38] ${isFixed ? 'fixed' : 'relative'} top-0 left-0 right-0 z-50 w-full`}>
       <div className="flex flex-col items-center size-full">
         <div className="content-stretch flex flex-col items-center pb-[24px] pt-[32px] px-[32px] relative w-full">
-          <div className="content-stretch flex items-center justify-between relative shrink-0 w-[1376px]">
+          <div className="content-stretch flex flex-wrap items-center justify-between gap-x-[24px] gap-y-[12px] relative shrink-0 w-full max-w-[1376px]">
             <PflLogo onClick={() => onNavigate?.('home')} />
             
             <div className="content-stretch flex gap-[16px] items-center relative shrink-0">

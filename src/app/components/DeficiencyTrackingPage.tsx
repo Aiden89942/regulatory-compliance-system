@@ -11,26 +11,16 @@ import {
   QuestionBankRow,
   QuestionTemplate,
 } from '../data/questionBankData';
+import {
+  DeficiencyStatus,
+  FlaggedQuestion,
+  FlaggedQuestionnaire,
+  resubmitDeficiency,
+  updateDeficiencyQuestion,
+  useDeficiencies,
+} from '../data/deficiencyStore';
 
-interface FlaggedQuestion {
-  questionId: string;
-  comment: string;
-  answer: string;
-  evidence: string;
-}
-
-type DeficiencyStatus = '待回填' | '已回填';
 const DEFICIENCY_TABS: DeficiencyStatus[] = ['待回填', '已回填'];
-
-interface FlaggedQuestionnaire {
-  id: string;
-  status: DeficiencyStatus;
-  template: QuestionTemplate;
-  process: string;
-  responsibleUnit: string;
-  unit: string;
-  questions: FlaggedQuestion[];
-}
 
 const RISK_LABEL: Record<InherentRisk, string> = {
   high: '高風險',
@@ -38,101 +28,6 @@ const RISK_LABEL: Record<InherentRisk, string> = {
   low: '低風險',
   none: '無',
 };
-
-const FLAGGED_QUESTIONNAIRES: FlaggedQuestionnaire[] = [
-  {
-    id: 'def-comp-1',
-    status: '待回填',
-    template: 'compliance',
-    process: '授信審查',
-    responsibleUnit: '凱基銀行 - 風管部',
-    unit: '授信管理部',
-    questions: [
-      {
-        questionId: 'comp-1-1',
-        comment: '查核單位覆核時，未見最近一期名單更新紀錄。',
-        answer: '未符合',
-        evidence: '',
-      },
-      {
-        questionId: 'comp-1-2',
-        comment: '抽查案件未留存迴避與職務代理紀錄。',
-        answer: '未符合',
-        evidence: '',
-      },
-    ],
-  },
-  {
-    id: 'def-comp-2',
-    status: '待回填',
-    template: 'compliance',
-    process: '存款開戶',
-    responsibleUnit: '凱基金控 - 資訊部',
-    unit: '營業部',
-    questions: [
-      {
-        questionId: 'comp-2-1',
-        comment: '部分開戶案件缺少雙證件核對紀錄。',
-        answer: '未符合',
-        evidence: '',
-      },
-    ],
-  },
-  {
-    id: 'def-comp-3',
-    status: '待回填',
-    template: 'compliance',
-    process: '資訊服務委外',
-    responsibleUnit: '凱基銀行 - 資訊部',
-    unit: '資訊科技部',
-    questions: [
-      {
-        questionId: 'comp-3-1',
-        comment: '資訊資產清單未涵蓋核心系統與關鍵設備。',
-        answer: '未符合',
-        evidence: '',
-      },
-      {
-        questionId: 'comp-3-3',
-        comment: '未說明連線是否加密，也沒有替代傳輸路徑。',
-        answer: '未符合',
-        evidence: '',
-      },
-    ],
-  },
-  {
-    id: 'def-ic-1',
-    status: '待回填',
-    template: 'internal-control',
-    process: '內部查核',
-    responsibleUnit: '凱基銀行 - 法遵部',
-    unit: '稽核處',
-    questions: [
-      {
-        questionId: 'ic-1-2',
-        comment: '前期缺失仍未結案，追蹤表未更新改善期限。',
-        answer: '否',
-        evidence: '',
-      },
-    ],
-  },
-  {
-    id: 'def-ic-2',
-    status: '待回填',
-    template: 'internal-control',
-    process: '系統權限管理',
-    responsibleUnit: '凱基銀行 - 資訊部',
-    unit: '資訊部',
-    questions: [
-      {
-        questionId: 'ic-2-1',
-        comment: '本季權限覆核紀錄缺漏，離職人員帳號尚未停用。',
-        answer: '否',
-        evidence: '',
-      },
-    ],
-  },
-];
 
 function HeaderCell({ text, align = 'left' }: { text: string; align?: 'left' | 'center' }) {
   return (
@@ -308,23 +203,17 @@ export default function DeficiencyTrackingPage() {
   const [template, setTemplate] = useState<QuestionTemplate>('compliance');
   const [tab, setTab] = useState<DeficiencyStatus>('待回填');
   const [searchQuery, setSearchQuery] = useState('');
-  const [questionnaires, setQuestionnaires] = useState(FLAGGED_QUESTIONNAIRES);
+  const questionnaires = useDeficiencies();
   const selectedId = searchParams.get('id') || '';
   const selected = questionnaires.find((item) => item.id === selectedId);
 
   const updateQuestion = (questionId: string, patch: Partial<FlaggedQuestion>) => {
-    setQuestionnaires((current) => current.map((item) => {
-      if (item.id !== selectedId) return item;
-      return {
-        ...item,
-        questions: item.questions.map((entry) => (entry.questionId === questionId ? { ...entry, ...patch } : entry)),
-      };
-    }));
+    if (selectedId) updateDeficiencyQuestion(selectedId, questionId, patch);
   };
 
   const resubmit = () => {
     if (!selected) return;
-    setQuestionnaires((current) => current.map((item) => (item.id === selected.id ? { ...item, status: '已回填' } : item)));
+    resubmitDeficiency(selected.id);
     setTab('已回填');
     onNavigate('deficiency-tracking');
   };
@@ -343,7 +232,7 @@ export default function DeficiencyTrackingPage() {
     <div className="bg-[#2e2e38] flex flex-col items-start w-full min-h-screen">
       <Header onNavigate={onNavigate} currentPage="deficiency-tracking" />
       <div className="bg-[#ececf3] flex flex-1 flex-col items-center py-[32px] rounded-tl-[32px] rounded-tr-[32px] w-full pt-[152px]">
-        <div className="flex flex-col gap-[32px] items-start px-[32px] w-[1440px]">
+        <div className="flex flex-col gap-[32px] items-start px-[32px] w-full max-w-[1440px]">
           <div className="flex gap-[8px] h-[24px] items-center">
             <button type="button" onClick={() => onNavigate('home')} className="bg-transparent border-none cursor-pointer p-0">
               <p className="font-['Inter:Regular','Noto_Sans_JP:Regular',sans-serif] leading-[24px] text-[#747480] text-[16px]">首頁</p>

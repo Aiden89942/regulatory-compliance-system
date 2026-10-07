@@ -2,14 +2,14 @@ import { useEffect, useState } from 'react';
 import { QuestionTemplate } from './questionBankData';
 import { openAssessmentForReview } from './assessmentStore';
 
-/** 負責單位：凱基金控 D、E、F 單位，凱基銀行 A、B、C 單位 */
+/** 負責單位：依 A、B、C（凱基銀行）、D、E、F（凱基金控）排序 */
 export const RESPONSIBLE_UNITS = [
-  '凱基金控 - D單位',
-  '凱基金控 - E單位',
-  '凱基金控 - F單位',
   '凱基銀行 - A單位',
   '凱基銀行 - B單位',
   '凱基銀行 - C單位',
+  '凱基金控 - D單位',
+  '凱基金控 - E單位',
+  '凱基金控 - F單位',
 ];
 
 export const ASSESSMENT_DEPARTMENTS = [
